@@ -11,6 +11,57 @@ Image::Image()
 	imgWidth = 0;
 }
 
+template <typename T1, typename T2>
+struct lessSecond {
+    typedef pair<T1, T2> type;
+    bool operator ()(type const& a, type const& b) const 
+    {
+        return a.second > b.second;
+    }
+};
+
+void Image::GetDepth(string fName)
+{
+    static float depth[2048][1024];
+    ifstream file(fName);
+    if (file.is_open())
+    {
+        float v;
+        for (size_t i = 0; i < imgWidth; i++)
+        {
+            for(size_t j = 0; j < imgHeight; j++)
+            {
+                file >> depth[i][j];
+            }
+        }
+
+        for(size_t k = 0; k < segments.size(); k++)
+        {
+            std::map<int, int> depthRep;
+            int xStart = (int)floor(segments[k].box.x1);
+            int yStart = (int)floor(segments[k].box.y1);
+            int xStop = (int)ceil(segments[k].box.x2);
+            int yStop = (int)ceil(segments[k].box.y2);
+            for(size_t i = xStart; i < xStop; i++)
+            {
+                for(size_t j = yStart; j < yStop; j++)
+                {
+                    depthRep[(int)ceil(depth[i][j])] += 1;
+                }
+            }
+            vector<pair<int, int> > mapcopy(depthRep.begin(), depthRep.end());
+            sort(mapcopy.begin(), mapcopy.end(), lessSecond<int, int>());  
+
+            cout << segments[k].label << " " << mapcopy[0].first << " " << mapcopy[0].second << endl; 
+        }
+    }
+    else
+    {
+        cout << "Unable to open file\n";
+        return;
+    }
+}
+
 void Image::DrawSegments(string f)
 {
     std::size_t found = f.find_last_of("/");

@@ -6,13 +6,17 @@ using namespace std;
 
 int main(int argc, char** argv) 
 {
-    const char *s = argv[1];
-    string fName(s);
+    const char *s1 = argv[1];
+    string fName1(s1);
     Image image;
-    image.ReadJson(fName);
-    image.PrintSegments();
+    image.ReadJson(fName1);
+    //image.PrintSegments();
     image.ComputeBoundingBox();
-    image.DrawSegments(fName);    
+    image.DrawSegments(fName1); 
+    const char *s2 = argv[2];
+    string fName2(s2);
+    cout(fName2);
+    image.GetDepth(fName2);   
 
 	return 0;
 }

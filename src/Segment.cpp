@@ -5,6 +5,7 @@ Segment::Segment()
 	label = "";
 	pointCount = 0;
 	box = BoundingBox();
+	depth = 0;
 }
 
 void Segment::ComputeBoundingBox()
