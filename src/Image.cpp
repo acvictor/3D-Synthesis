@@ -54,6 +54,8 @@ void Image::GetDepth(string fName)
                 {
                     depthRep[(int)ceil(depth[i][j])] += 1;
                     averageDepth += depth[i][j];
+                    segments[k].box.minDepth = min(segments[k].box.minDepth, depth[i][j]);
+                    segments[k].box.maxDepth = max(segments[k].box.maxDepth, depth[i][j]);
                 }
             }
 
@@ -108,11 +110,15 @@ void Image::PrintSegments()
     cout(imgWidth);
     for(size_t i = 0; i < segments.size(); i++)
     {
-        cout << segments[i].label << ", Averge depth = " << segments[i].box.averageDepth << endl;
-        for(size_t j = 0; j < segments[i].polygon.size(); j++)
+        cout << segments[i].label << "\nAverge depth = " << segments[i].box.averageDepth << 
+                                     "\nMost repeated = " << segments[i].box.mostRepDepth <<
+                                     "\nMin depth = " << segments[i].box.minDepth << 
+                                     "\nMax depth = " << segments[i].box.maxDepth << endl;
+
+        /*for(size_t j = 0; j < segments[i].polygon.size(); j++)
         {
             cout << segments[i].polygon[j].x << " " << segments[i].polygon[j].y << endl;
-        }
+        }*/
         cout << endl;
     }
     cout << endl;
