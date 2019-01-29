@@ -10,13 +10,13 @@ int main(int argc, char** argv)
     string fName1(s1);
     Image image;
     image.ReadJson(fName1);
-    //image.PrintSegments();
     image.ComputeBoundingBox();
-    image.DrawSegments(fName1); 
+    //image.DrawSegments(fName1); 
     const char *s2 = argv[2];
     string fName2(s2);
     cout(fName2);
     image.GetDepth(fName2);   
+    image.PrintSegments();
 
 	return 0;
 }

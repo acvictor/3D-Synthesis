@@ -24,6 +24,7 @@ void Image::GetDepth(string fName)
 {
     static float depth[2048][1024];
     ifstream file(fName);
+
     if (file.is_open())
     {
         float v;
@@ -35,24 +36,33 @@ void Image::GetDepth(string fName)
             }
         }
 
+        #pragma omp parallel for
         for(size_t k = 0; k < segments.size(); k++)
         {
             std::map<int, int> depthRep;
+            float averageDepth = 0.0;
+
             int xStart = (int)floor(segments[k].box.x1);
             int yStart = (int)floor(segments[k].box.y1);
             int xStop = (int)ceil(segments[k].box.x2);
             int yStop = (int)ceil(segments[k].box.y2);
+
+            #pragma omp parallel for collapse(2)
             for(size_t i = xStart; i < xStop; i++)
             {
                 for(size_t j = yStart; j < yStop; j++)
                 {
                     depthRep[(int)ceil(depth[i][j])] += 1;
+                    averageDepth += depth[i][j];
                 }
             }
+
+            averageDepth /= (float)((xStop - xStart) * (yStop - yStart));
+            segments[k].box.averageDepth = averageDepth;
+
             vector<pair<int, int> > mapcopy(depthRep.begin(), depthRep.end());
             sort(mapcopy.begin(), mapcopy.end(), lessSecond<int, int>());  
-
-            cout << segments[k].label << " " << mapcopy[0].first << " " << mapcopy[0].second << endl; 
+            segments[k].box.mostRepDepth = mapcopy[0].first;
         }
     }
     else
@@ -98,7 +108,7 @@ void Image::PrintSegments()
     cout(imgWidth);
     for(size_t i = 0; i < segments.size(); i++)
     {
-        cout << segments[i].label << " " << segments[i].pointCount << endl;
+        cout << segments[i].label << ", Averge depth = " << segments[i].box.averageDepth << endl;
         for(size_t j = 0; j < segments[i].polygon.size(); j++)
         {
             cout << segments[i].polygon[j].x << " " << segments[i].polygon[j].y << endl;

@@ -8,6 +8,8 @@ public:
 	 * (x2, y2) bottom right
 	 */
 	float x1, y1, x2, y2;
+	float averageDepth;
+	int mostRepDepth;
 
 	BoundingBox()
 	{
