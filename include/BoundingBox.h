@@ -9,7 +9,6 @@ public:
 	 */
 	float x1, y1, x2, y2;
 	float averageDepth, minDepth, maxDepth;
-	int mostRepDepth;
 
 	BoundingBox()
 	{

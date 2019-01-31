@@ -18,6 +18,7 @@ class Image
 public:
 	vector<Segment> segments;
     int imgHeight, imgWidth;
+    string name;
 
     Image();
 

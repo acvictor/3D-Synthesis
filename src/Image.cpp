@@ -3,7 +3,8 @@
 
 #define cout(a) cout<<a<<endl
 
-bool drawBox = 1;
+bool drawBox = 0;
+bool show = 0;
 
 Image::Image()
 {
@@ -25,6 +26,16 @@ void Image::GetDepth(string fName)
     static float depth[2048][1024];
     ifstream file(fName);
 
+    string im = "temp/" + name + "png";
+
+    Mat img = imread(im, CV_LOAD_IMAGE_COLOR); 
+    
+    if(!img.data)                              
+    {
+        cout <<  "Could not open or find the image" << std::endl ;
+        return;
+    }
+
     if (file.is_open())
     {
         float v;
@@ -36,35 +47,48 @@ void Image::GetDepth(string fName)
             }
         }
 
+        // (y)i - rows, (x)j - cols, (i, j)
         #pragma omp parallel for
         for(size_t k = 0; k < segments.size(); k++)
         {
-            std::map<int, int> depthRep;
             float averageDepth = 0.0;
+            Colour col = labels[segments[k].label];
 
-            int xStart = (int)floor(segments[k].box.x1);
-            int yStart = (int)floor(segments[k].box.y1);
-            int xStop = (int)ceil(segments[k].box.x2);
-            int yStop = (int)ceil(segments[k].box.y2);
+            int xStart = (int)(segments[k].box.x1);
+            int yStart = (int)(segments[k].box.y1);
+            int xStop = (int)(segments[k].box.x2);
+            int yStop = (int)(segments[k].box.y2);
 
+            int nOfPixels = 0, red, green, blue;
+            Vec3f intensity;
             #pragma omp parallel for collapse(2)
-            for(size_t i = xStart; i < xStop; i++)
+            for(int i = xStart; i < xStop; i++)
             {
-                for(size_t j = yStart; j < yStop; j++)
+                for(int j = yStart; j < yStop; j++)
                 {
-                    depthRep[(int)ceil(depth[i][j])] += 1;
-                    averageDepth += depth[i][j];
-                    segments[k].box.minDepth = min(segments[k].box.minDepth, depth[i][j]);
-                    segments[k].box.maxDepth = max(segments[k].box.maxDepth, depth[i][j]);
+                    intensity = img.at<Vec3b>(j, i);
+                    blue = intensity.val[0];
+                    green = intensity.val[1];
+                    red = intensity.val[2];
+
+                    if(col.r == red && col.g == green && col.b == blue)
+                    {
+                        nOfPixels++;
+                        averageDepth += depth[i][j];
+                        segments[k].box.minDepth = min(segments[k].box.minDepth, depth[i][j]);
+                        segments[k].box.maxDepth = max(segments[k].box.maxDepth, depth[i][j]);
+                    }
                 }
             }
 
-            averageDepth /= (float)((xStop - xStart) * (yStop - yStart));
-            segments[k].box.averageDepth = averageDepth;
+            if(nOfPixels == 0)
+            {
+                cout << "Unable to get depth for " << segments[k].label << "\nObject number " << k + 1 << " in " << name << ".json\n";
+                nOfPixels++;                
+            }
 
-            vector<pair<int, int> > mapcopy(depthRep.begin(), depthRep.end());
-            sort(mapcopy.begin(), mapcopy.end(), lessSecond<int, int>());  
-            segments[k].box.mostRepDepth = mapcopy[0].first;
+            averageDepth /= (float)nOfPixels;
+            segments[k].box.averageDepth = averageDepth;
         }
     }
     else
@@ -78,9 +102,8 @@ void Image::DrawSegments(string f)
 {
     std::size_t found = f.find_last_of("/");
     string fName = f.substr(found + 1);
-    cout(fName);
 
-    Mat image = Mat::zeros(imgHeight, imgWidth, CV_8UC3 );
+    Mat image = Mat::zeros(imgHeight, imgWidth, CV_8UC3);
 
     for(size_t i = 0; i < segments.size(); i++)
     {
@@ -92,16 +115,23 @@ void Image::DrawSegments(string f)
         
         const Point* ppt[1] = { poly[0] };
         int npt[] = { (int)segments[i].pointCount };
-     
+
         Colour col = labels[segments[i].label];
-        fillPoly(image, ppt, npt, 1, Scalar(col.r, col.g, col.b), 8 );
+
+        fillPoly(image, ppt, npt, 1, Scalar(col.b, col.g, col.r), 8 );
 
         if(drawBox)
             rectangle(image, Point(segments[i].box.x1, segments[i].box.y1), Point(segments[i].box.x2, segments[i].box.y2), Scalar(255, 255, 255));
     }
 
-    imshow("Image", image);
-    waitKey(0);
+    name = fName.substr(0, fName.length() - 4);
+    imwrite("temp/" + fName.substr(0, fName.length() - 4) + "png", image);
+
+    if(show)
+    {
+        imshow("Image", image);
+        waitKey(0);
+    }
 }
 
 void Image::PrintSegments()
@@ -111,7 +141,6 @@ void Image::PrintSegments()
     for(size_t i = 0; i < segments.size(); i++)
     {
         cout << segments[i].label << "\nAverge depth = " << segments[i].box.averageDepth << 
-                                     "\nMost repeated = " << segments[i].box.mostRepDepth <<
                                      "\nMin depth = " << segments[i].box.minDepth << 
                                      "\nMax depth = " << segments[i].box.maxDepth << endl;
 
