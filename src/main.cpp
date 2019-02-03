@@ -25,12 +25,13 @@ int main(int argc, char** argv)
     const char *s2 = argv[2];
     string fName2(s2);
     image.GetDepth(fName2);   
-    image.PrintSegments();
+    //image.PrintSegments();
 
     SceneGenerator generator = SceneGenerator();
-    generator.CreateRoad();
-    generator.CreateShaders();
-    generator.Render();
+	while (!generator.mainWindow.getShouldClose())
+	{
+		generator.Render();
+	}
 
 	return 0;
 }

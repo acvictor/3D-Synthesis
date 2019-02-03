@@ -1,5 +1,10 @@
 #pragma once
 
+#include <stdio.h>
+#include <string.h>
+#include <cmath>
+#include <vector>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -7,53 +12,61 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "../include/CommonValues.h"
 #include "../include/Window.h"
-#include "../include/Camera.h"
-#include "../include/Material.h"
+#include "../include/Mesh.h"
 #include "../include/Shader.h"
+#include "../include/Camera.h"
 #include "../include/Texture.h"
 #include "../include/DirectionalLight.h"
-#include "../include/Model.h"
-#include "../include/Image.h"
 #include "../include/PointLight.h"
 #include "../include/SpotLight.h"
-#include "../include/CommonValues.h"
+#include "../include/Material.h"
+#include "../include/Model.h"
 
 class SceneGenerator
 {
 public:
-	Window mainWindow;
-	Camera camera;
+    Window mainWindow;
+    std::vector<Mesh*> meshList;
+    std::vector<Shader> shaderList;
+    Shader directionalShadowShader;
 
-	DirectionalLight mainLight;
-	PointLight pointLights[MAX_POINT_LIGHTS];
-	SpotLight spotLights[MAX_SPOT_LIGHTS];
+    std::vector<Model> modelList;
+    Material shinyMaterial, dullMaterial;
+    Model bishop, king, queen, rook, knight, pawn;	
 
-	std::vector<Model> modelList;
-	std::vector<Mesh*> meshList;
-	std::vector<Texture> textureList;
+    Camera camera;
 
-	std::vector<Shader> shaderList;
-	Shader directionalShadowShader;
+    Texture brickTexture;
+    Texture marbleTexture;
+    Texture plainTexture;
+    
+    DirectionalLight mainLight;
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    SpotLight spotLights[MAX_SPOT_LIGHTS];
 
-	Material glossy, dull;
+    GLfloat deltaTime;
+    GLfloat lastTime;
 
-	GLfloat deltaTime, lastTime;
-	
-	GLuint uniformProjection, uniformModel, uniformView, uniformEyePosition, uniformSpecularIntensity, uniformShininess, uniformFogColour;
+    glm::mat4 projection;
 
-	glm::mat4 projection;
+    unsigned int pointLightCount, spotLightCount;
 
-	SceneGenerator();
+    GLuint uniformProjection, uniformModel, uniformView, uniformEyePosition, uniformSpecularIntensity, uniformShininess, uniformFogColour;
 
-	void Init();
-	void AddModels(Image& image);
-	void CreateRoad();
-	void CreateShaders();
+    SceneGenerator();
+    void Init();
 
-	void TransformAndRenderMesh(Mesh* m, Material* mat, GLfloat transX, GLfloat transY, GLfloat transZ, GLfloat scale, GLfloat rotX, GLfloat rotY, GLfloat rotZ);
-	void RenderScene();
-	void DirectionalShadowMapPass(DirectionalLight* light);
-	void RenderPass(glm::mat4 viewMatrix);
-	void Render();
+    void calcAverageNormals(unsigned int * indices, unsigned int indiceCount, GLfloat * vertices, unsigned int verticeCount, 
+						unsigned int vLength, unsigned int normalOffset);
+    void CreateObjects();
+    void CreateShaders();
+
+    void TransformAndRenderModel(Model* m, Material* mat, GLfloat transX, GLfloat transY, GLfloat transZ, GLfloat scale, GLfloat rotX, GLfloat rotY, GLfloat rotZ);
+    void TransformAndRenderMesh(Mesh* m, Material* mat, GLfloat transX, GLfloat transY, GLfloat transZ, GLfloat scale, GLfloat rotX, GLfloat rotY, GLfloat rotZ);
+    void RenderSceneGenerator();
+    void DirectionalShadowMapPass();
+    void RenderPass(glm::mat4 viewMatrix);
+    void Render();
 };

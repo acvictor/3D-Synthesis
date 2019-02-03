@@ -1,4 +1,4 @@
-#version 330 core
+#version 330
 
 in vec4 vCol;
 in vec2 TexCoord;
@@ -201,7 +201,8 @@ void main()
 
 	//float d = distance(eyePosition, FragPos);
     //float alpha = GetFogFactor(d);
+
     //finalColour = mix(finalColour, fogColour, alpha);
 	
-	colour = vec4(1.0, 1.0, 1.0, 1.0) * finalColour;
+	colour = vec4(1.0f) * finalColour;
 }
