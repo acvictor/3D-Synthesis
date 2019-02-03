@@ -1,5 +1,7 @@
 #include "../include/Model.h"
 
+#define AI_CONFIG_PP_PTV_NORMALIZE "PP_PTV_NORMALIZE"
+
 Model::Model()
 {
 }
@@ -22,8 +24,14 @@ void Model::RenderModel()
 void Model::LoadModel(const std::string & fileName)
 {
 	Assimp::Importer importer;
-	const aiScene *scene = importer.ReadFile(fileName, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
-
+	aiPropertyStore* props = aiCreatePropertyStore();
+	aiSetImportPropertyInteger(props, "PP_PTV_NORMALIZE", 1);
+	const aiScene* scene = (aiScene*)aiImportFileExWithProperties(fileName.c_str(),
+	aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_PreTransformVertices,
+    NULL,
+    props);
+	aiReleasePropertyStore(props);
+	
 	if (!scene)
 	{
 		printf("Model (%s) failed to load: %s", fileName, importer.GetErrorString());
@@ -53,9 +61,12 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 	std::vector<GLfloat> vertices;
 	std::vector<unsigned int> indices;
 
+	GLfloat maxX = -10000.0f;
+
 	for (size_t i = 0; i < mesh->mNumVertices; i++)
 	{
 		vertices.insert(vertices.end(), { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z });
+		maxX = std::max(maxX, mesh->mVertices[i].x);
 		if (mesh->mTextureCoords[0])
 		{
 			vertices.insert(vertices.end(), { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y });
@@ -65,6 +76,8 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 		}
 		vertices.insert(vertices.end(), { -mesh->mNormals[i].x, -mesh->mNormals[i].y, -mesh->mNormals[i].z });
 	}
+
+	std::cout << maxX << std::endl;
 
 	for (size_t i = 0; i < mesh->mNumFaces; i++)
 	{

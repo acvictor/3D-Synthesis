@@ -28,6 +28,9 @@ int main(int argc, char** argv)
     image.PrintSegments();
 
     SceneGenerator generator = SceneGenerator();
+    generator.CreateRoad();
+    generator.CreateShaders();
+    generator.Render();
 
 	return 0;
 }

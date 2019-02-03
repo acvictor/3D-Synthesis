@@ -41,6 +41,7 @@ bool Texture::LoadTexture()
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	stbi_image_free(texData);
+	printf("Loaded %s\n", fileLocation);
 
 	return true;
 }
