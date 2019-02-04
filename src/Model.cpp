@@ -5,6 +5,7 @@
 Model::Model()
 {
 	depth = 0.0f;
+	rotX = rotY = rotZ = 0.0f;
 }
 
 Model::Model(float d, float x, float y)
@@ -12,6 +13,7 @@ Model::Model(float d, float x, float y)
 	depth = -d;
 	xPos = x;
 	yPos = y;
+	rotX = rotY = rotZ = 0.0f;
 }
 
 void Model::RenderModel()

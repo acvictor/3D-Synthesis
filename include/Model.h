@@ -17,6 +17,7 @@ class Model
 {
 public:
 	float depth, xPos, yPos;
+	float rotX, rotY, rotZ;
 
 	Model();
 	Model(float d, float x, float y);

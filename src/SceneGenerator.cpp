@@ -32,10 +32,24 @@ void SceneGenerator::AddModels(Image image)
 	{
 		if(image.segments[i].label == "car")
 		{
+			int x = rand() % 2;
 			Model* newModel = new Model(image.segments[i].box.averageDepth * 2, 
-								       ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / 4, 
-								       ((image.segments[i].box.y1 + image.segments[i].box.y2) / 2.0f - 512) / 4);
-			newModel->LoadModel("assets/car/car.obj");
+								       ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / 6, 
+								       ((image.segments[i].box.y1 + image.segments[i].box.y2) / 2.0f - 512) / 6);
+			if(x == 0)
+			{
+				newModel->LoadModel("assets/car/car.obj");
+				newModel->rotX = -90.0f;
+				newModel->rotZ = -90.0f;
+			}
+			else if(x == 1)
+			{
+				newModel->LoadModel("assets/SUV/SUV.obj");
+				newModel->rotX = -90.0f;
+				newModel->rotZ = -180.0f;
+
+			}
+
 			cout << newModel->xPos << endl;
 			modelList.push_back(*newModel);
 		}
@@ -149,7 +163,7 @@ void SceneGenerator::RenderSceneGenerator()
 
 	for(size_t i = 0; i < modelList.size(); i++)
 	{
-		TransformAndRenderModel(&modelList[i], &dullMaterial, modelList[i].xPos, 3.0f, modelList[i].depth, 10.0f, -90.0f, 00.0f, -90.0f);
+		TransformAndRenderModel(&modelList[i], &dullMaterial, modelList[i].xPos, 3.0f, modelList[i].depth, 10.0f, modelList[i].rotX, modelList[i].rotY, modelList[i].rotZ);
 	}
 	
 }
