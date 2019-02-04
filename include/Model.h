@@ -16,7 +16,10 @@
 class Model
 {
 public:
+	float depth, xPos, yPos;
+
 	Model();
+	Model(float d, float x, float y);
 
 	void LoadModel(const std::string& fileName);
 	void RenderModel();

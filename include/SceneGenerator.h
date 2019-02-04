@@ -14,6 +14,7 @@
 
 #include "../include/CommonValues.h"
 #include "../include/Window.h"
+#include "../include/Image.h"
 #include "../include/Mesh.h"
 #include "../include/Shader.h"
 #include "../include/Camera.h"
@@ -34,7 +35,6 @@ public:
 
     std::vector<Model> modelList;
     Material shinyMaterial, dullMaterial;
-    Model bishop, king, queen, rook, knight, pawn;	
 
     Camera camera;
 
@@ -62,6 +62,8 @@ public:
 						unsigned int vLength, unsigned int normalOffset);
     void CreateObjects();
     void CreateShaders();
+
+    void AddModels(Image image);
 
     void TransformAndRenderModel(Model* m, Material* mat, GLfloat transX, GLfloat transY, GLfloat transZ, GLfloat scale, GLfloat rotX, GLfloat rotY, GLfloat rotZ);
     void TransformAndRenderMesh(Mesh* m, Material* mat, GLfloat transX, GLfloat transY, GLfloat transZ, GLfloat scale, GLfloat rotX, GLfloat rotY, GLfloat rotZ);

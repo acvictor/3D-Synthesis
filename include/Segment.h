@@ -14,7 +14,6 @@ public:
 	std::string label;
 	int pointCount;
 	BoundingBox box;
-	float depth;
 
 	Segment();
 

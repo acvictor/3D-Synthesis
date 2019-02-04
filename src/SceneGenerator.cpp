@@ -2,6 +2,7 @@
 
 static const char* vShader = "shaders/shader.vert";
 static const char* fShader = "shaders/shader.frag";
+
 const float toRadians = 3.14159265f / 180.0f;
 
 using namespace std;
@@ -21,9 +22,24 @@ SceneGenerator::SceneGenerator()
     deltaTime = 0.0f;
     lastTime = 0.0f;
 
-    cout << "Created\n";
-
     Init();
+}
+
+void SceneGenerator::AddModels(Image image)
+{
+	for(size_t i = 0; i < image.segments.size(); i++)
+	{
+		if(image.segments[i].label == "car")
+		{
+			Model* newModel = new Model(image.segments[i].box.averageDepth, 
+								       (image.segments[i].box.x1 + image.segments[i].box.x2 - 2048) / 2.0f, 
+								       (image.segments[i].box.y1 + image.segments[i].box.y2 - 2048) / 2.0f);
+			newModel->LoadModel("assets/car/car.obj");
+			cout << newModel->xPos << endl;
+			modelList.push_back(*newModel);
+		}
+	}
+	
 }
 
 void SceneGenerator::calcAverageNormals(unsigned int * indices, unsigned int indiceCount, GLfloat * vertices, unsigned int verticeCount, 
@@ -56,21 +72,6 @@ void SceneGenerator::calcAverageNormals(unsigned int * indices, unsigned int ind
 
 void SceneGenerator::CreateObjects() 
 {
-	unsigned int indices[] = {		
-		0, 3, 1,
-		1, 3, 2,
-		2, 3, 0,
-		0, 1, 2
-	};
-
-	GLfloat vertices[] = {
-	    // x     y      z	  u	    v	  nx	ny    nz
-		-1.0f, -1.0f, -0.6f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		 0.0f, -1.0f,  1.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f,
-		 1.0f, -1.0f, -0.6f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		 0.0f,  1.0f,  0.0f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f
-	};
-
 	unsigned int floorIndices[] = {
 		0, 2, 1,
 		1, 2, 3
@@ -89,34 +90,23 @@ void SceneGenerator::CreateObjects()
 	};
 
 	GLfloat backWallVertices[] = {
-		-10.0f,  0.0f, -10.0f, 0.0f, 0.0f,	0.0f, 0.0f, -1.0f,
-		 10.0f,  0.0f, -10.0f, 1.0f, 0.0f,	0.0f, 0.0f, -1.0f,
-		-10.0f, 10.0f, -10.0f, 0.0f, 1.0f,	0.0f, 0.0f, -1.0f,
-		 10.0f, 10.0f, -10.0f, 1.0f, 1.0f,	0.0f, 0.0f, -1.0f
+		-100.0f,   0.0f, -100.0f, 0.0f, 0.0f,	0.0f, 0.0f, -1.0f,
+		 100.0f,   0.0f, -100.0f, 1.0f, 0.0f,	0.0f, 0.0f, -1.0f,
+		-100.0f, 100.0f, -100.0f, 0.0f, 1.0f,	0.0f, 0.0f, -1.0f,
+		 100.0f, 100.0f, -100.0f, 1.0f, 1.0f,	0.0f, 0.0f, -1.0f
 	};
 
-	calcAverageNormals(indices, 12, vertices, 32, 8, 5);
+	Mesh *floor = new Mesh();
+	floor->CreateMesh(floorVertices, floorIndices, 32, 6);
+	meshList.push_back(floor);
 
-	Mesh *obj1 = new Mesh();
-	obj1->CreateMesh(vertices, indices, 32, 12);
-	meshList.push_back(obj1);
-
-	Mesh *obj2 = new Mesh();
-	obj2->CreateMesh(vertices, indices, 32, 12);
-	meshList.push_back(obj2);
-
-	Mesh *obj3 = new Mesh();
-	obj3->CreateMesh(floorVertices, floorIndices, 32, 6);
-	meshList.push_back(obj3);
-
-	Mesh* obj4 = new Mesh();
-	obj4->CreateMesh(backWallVertices, backWallIndices, 32, 6);
-	meshList.push_back(obj4);
+	Mesh* wall = new Mesh();
+	wall->CreateMesh(backWallVertices, backWallIndices, 32, 6);
+	meshList.push_back(wall);
 }
 
 void SceneGenerator::TransformAndRenderModel(Model* m, Material* mat, GLfloat transX, GLfloat transY, GLfloat transZ, GLfloat scale, GLfloat rotX, GLfloat rotY, GLfloat rotZ)
 {
-	// First translate, rotate, then scale so that it's executed as scale, rotate, translate
 	glm::mat4 model = glm::mat4();
 	model = glm::translate(model, glm::vec3(transX, transY, transZ));
 	model = glm::rotate(model, rotX * toRadians, glm::vec3(1, 0, 0));
@@ -153,8 +143,14 @@ void SceneGenerator::CreateShaders()
 void SceneGenerator::RenderSceneGenerator()
 {
 	glm::mat4 model;	
+	TransformAndRenderMesh(meshList[0], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+	TransformAndRenderMesh(meshList[1], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 
-	TransformAndRenderMesh(meshList[2], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+	for(size_t i = 0; i < modelList.size(); i++)
+	{
+		TransformAndRenderModel(&modelList[i], &dullMaterial, modelList[i].xPos, 3.0f, modelList[i].depth, 10.0f, -90.0f, 00.0f, -90.0f);
+	}
+	
 }
 
 
@@ -217,12 +213,10 @@ void SceneGenerator::RenderPass(glm::mat4 viewMatrix)
 
 void SceneGenerator::Render()
 {
-	GLfloat now = glfwGetTime(); // SDL_GetPerformanceCounter();
-	deltaTime = now - lastTime; // (now - lastTime)*1000/SDL_GetPerformanceFrequency();
+	GLfloat now = glfwGetTime(); 
+	deltaTime = now - lastTime;
 	lastTime = now;
 
-
-	// Get + Handle User Input
 	glfwPollEvents();
 
 	camera.keyControl(mainWindow.getsKeys(), deltaTime);
@@ -236,13 +230,13 @@ void SceneGenerator::Render()
 
 void SceneGenerator::Init()
 {
-	mainWindow = Window(1600, 800); // 1280, 1024 or 1024, 768
+	mainWindow = Window(1600, 800);
 	mainWindow.Initialise();
 
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(2.0f, 2.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.0f, 0.0f, 5.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 20.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 0.0f, 5.0f, 0.5f);
 
 	brickTexture = Texture("textures/brick.png");
 	brickTexture.LoadTextureA();
@@ -256,8 +250,8 @@ void SceneGenerator::Init()
 
 	mainLight = DirectionalLight(2048, 2048,
 								1.0f, 1.0f, 1.0f, 
-								0.1f, 0.3f,
+								0.6f, 0.3f,
 								0.0f, -15.0f, -10.0f);
 
-    projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 100.0f);
+    projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 200.0f);
 }

@@ -4,6 +4,14 @@
 
 Model::Model()
 {
+	depth = 0.0f;
+}
+
+Model::Model(float d, float x, float y)
+{
+	depth = -d;
+	xPos = x;
+	yPos = y;
 }
 
 void Model::RenderModel()
@@ -76,8 +84,6 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 		}
 		vertices.insert(vertices.end(), { -mesh->mNormals[i].x, -mesh->mNormals[i].y, -mesh->mNormals[i].z });
 	}
-
-	std::cout << maxX << std::endl;
 
 	for (size_t i = 0; i < mesh->mNumFaces; i++)
 	{
