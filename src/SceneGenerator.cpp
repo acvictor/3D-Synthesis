@@ -27,13 +27,14 @@ SceneGenerator::SceneGenerator()
 
 void SceneGenerator::AddModels(Image image)
 {
+	float aspect = (float)mainWindow.getBufferWidth() / (float)mainWindow.getBufferHeight();
 	for(size_t i = 0; i < image.segments.size(); i++)
 	{
 		if(image.segments[i].label == "car")
 		{
-			Model* newModel = new Model(image.segments[i].box.averageDepth, 
-								       (image.segments[i].box.x1 + image.segments[i].box.x2 - 2048) / 2.0f, 
-								       (image.segments[i].box.y1 + image.segments[i].box.y2 - 2048) / 2.0f);
+			Model* newModel = new Model(image.segments[i].box.averageDepth * 2, 
+								       ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / 4, 
+								       ((image.segments[i].box.y1 + image.segments[i].box.y2) / 2.0f - 512) / 4);
 			newModel->LoadModel("assets/car/car.obj");
 			cout << newModel->xPos << endl;
 			modelList.push_back(*newModel);
@@ -78,10 +79,10 @@ void SceneGenerator::CreateObjects()
 	};
 
 	GLfloat floorVertices[] = {
-		-100.0f, 0.0f, -100.0f, 0.0f, 0.0f,	0.0f, -1.0f, 0.0f,
-		 100.0f, 0.0f, -100.0f, 1.0f, 0.0f,	0.0f, -1.0f, 0.0f,
-		-100.0f, 0.0f,  100.0f, 0.0f, 1.0f,	0.0f, -1.0f, 0.0f,
-		 100.0f, 0.0f,  100.0f, 1.0f, 1.0f,	0.0f, -1.0f, 0.0f
+		-1000.0f, 0.0f, -1000.0f, 0.0f, 0.0f,	0.0f, -1.0f, 0.0f,
+		 1000.0f, 0.0f, -1000.0f, 1.0f, 0.0f,	0.0f, -1.0f, 0.0f,
+		-1000.0f, 0.0f,  1000.0f, 0.0f, 1.0f,	0.0f, -1.0f, 0.0f,
+		 1000.0f, 0.0f,  1000.0f, 1.0f, 1.0f,	0.0f, -1.0f, 0.0f
 	};
 
 	unsigned int backWallIndices[] = {
@@ -144,7 +145,7 @@ void SceneGenerator::RenderSceneGenerator()
 {
 	glm::mat4 model;	
 	TransformAndRenderMesh(meshList[0], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
-	TransformAndRenderMesh(meshList[1], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+	//TransformAndRenderMesh(meshList[1], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 
 	for(size_t i = 0; i < modelList.size(); i++)
 	{
@@ -187,7 +188,7 @@ void SceneGenerator::RenderPass(glm::mat4 viewMatrix)
 
 	glViewport(0, 0, mainWindow.getWidth(), mainWindow.getHeight());
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.9f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUniformMatrix4fv(uniformProjection, 1, GL_FALSE, glm::value_ptr(projection));
@@ -236,7 +237,7 @@ void SceneGenerator::Init()
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(0.0f, 20.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 0.0f, 5.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 20.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 0.0f, 10.0f, 0.5f);
 
 	brickTexture = Texture("textures/brick.png");
 	brickTexture.LoadTextureA();
@@ -253,5 +254,5 @@ void SceneGenerator::Init()
 								0.6f, 0.3f,
 								0.0f, -15.0f, -10.0f);
 
-    projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 200.0f);
+    projection = glm::perspective(45.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 400.0f);
 }

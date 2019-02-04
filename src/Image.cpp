@@ -141,8 +141,8 @@ void Image::PrintSegments()
     for(size_t i = 0; i < segments.size(); i++)
     {
         cout << segments[i].label << "\nAverge depth = " << segments[i].box.averageDepth << 
-                                     "\nMin depth = " << segments[i].box.minDepth << 
-                                     "\nMax depth = " << segments[i].box.maxDepth << endl;
+                                     "\nX1 = " << segments[i].box.x1 << 
+                                     "\nX2 = " << segments[i].box.x2 << endl;
 
         /*for(size_t j = 0; j < segments[i].polygon.size(); j++)
         {
