@@ -27,4 +27,5 @@ public:
     void ComputeBoundingBox();
     void DrawSegments(string fName);
     void GetDepth(string fName);
+    void PrintDepth();
 };

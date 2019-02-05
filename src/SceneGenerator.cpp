@@ -4,6 +4,7 @@ static const char* vShader = "shaders/shader.vert";
 static const char* fShader = "shaders/shader.frag";
 
 const float toRadians = 3.14159265f / 180.0f;
+const float reSize = 10;
 
 using namespace std;
 
@@ -33,9 +34,9 @@ void SceneGenerator::AddModels(Image image)
 		if(image.segments[i].label == "car")
 		{
 			int x = rand() % 2;
-			Model* newModel = new Model(image.segments[i].box.averageDepth * 2, 
-								       ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / 6, 
-								       ((image.segments[i].box.y1 + image.segments[i].box.y2) / 2.0f - 512) / 6);
+			Model* newModel = new Model(image.segments[i].box.averageDepth * 4, 
+								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
+								        0.0f);
 			if(x == 0)
 			{
 				newModel->LoadModel("assets/car/car.obj");
@@ -47,9 +48,18 @@ void SceneGenerator::AddModels(Image image)
 				newModel->LoadModel("assets/SUV/SUV.obj");
 				newModel->rotX = -90.0f;
 				newModel->rotZ = -180.0f;
-
 			}
+			modelList.push_back(*newModel);
+		}
 
+		if(image.segments[i].label == "person")
+		{
+			Model* newModel = new Model(image.segments[i].box.averageDepth * 2, 
+								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
+								        0.0f);
+			newModel->LoadModel("assets/person/person.obj");
+			newModel->rotY = -90.0f;
+			newModel->scale = 0.4f;
 			cout << newModel->xPos << endl;
 			modelList.push_back(*newModel);
 		}
@@ -158,12 +168,12 @@ void SceneGenerator::CreateShaders()
 void SceneGenerator::RenderSceneGenerator()
 {
 	glm::mat4 model;	
-	TransformAndRenderMesh(meshList[0], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+	TransformAndRenderMesh(meshList[0], &dullMaterial, 0.0f, -4.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 	//TransformAndRenderMesh(meshList[1], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 
 	for(size_t i = 0; i < modelList.size(); i++)
 	{
-		TransformAndRenderModel(&modelList[i], &dullMaterial, modelList[i].xPos, 3.0f, modelList[i].depth, 10.0f, modelList[i].rotX, modelList[i].rotY, modelList[i].rotZ);
+		TransformAndRenderModel(&modelList[i], &dullMaterial, modelList[i].xPos, modelList[i].yPos, modelList[i].depth, modelList[i].scale * 10, modelList[i].rotX, modelList[i].rotY, modelList[i].rotZ);
 	}
 	
 }
@@ -251,7 +261,7 @@ void SceneGenerator::Init()
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(0.0f, 20.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 0.0f, 10.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 0.0f, 10.0f, 0.5f);
 
 	brickTexture = Texture("textures/brick.png");
 	brickTexture.LoadTextureA();

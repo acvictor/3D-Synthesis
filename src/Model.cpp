@@ -6,6 +6,9 @@ Model::Model()
 {
 	depth = 0.0f;
 	rotX = rotY = rotZ = 0.0f;
+	xPos = 0.0f;
+	yPos = 0.0f;
+	scale = 1.0f;
 }
 
 Model::Model(float d, float x, float y)
@@ -14,6 +17,7 @@ Model::Model(float d, float x, float y)
 	xPos = x;
 	yPos = y;
 	rotX = rotY = rotZ = 0.0f;
+	scale = 1.0f;
 }
 
 void Model::RenderModel()
@@ -76,7 +80,7 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 	for (size_t i = 0; i < mesh->mNumVertices; i++)
 	{
 		vertices.insert(vertices.end(), { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z });
-		maxX = std::max(maxX, mesh->mVertices[i].x);
+		maxX = std::max(maxX, mesh->mVertices[i].y);
 		if (mesh->mTextureCoords[0])
 		{
 			vertices.insert(vertices.end(), { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y });
@@ -86,6 +90,8 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 		}
 		vertices.insert(vertices.end(), { -mesh->mNormals[i].x, -mesh->mNormals[i].y, -mesh->mNormals[i].z });
 	}
+
+	//std::cout << maxX << std::endl;
 
 	for (size_t i = 0; i < mesh->mNumFaces; i++)
 	{

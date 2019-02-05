@@ -134,20 +134,27 @@ void Image::DrawSegments(string f)
     }
 }
 
+void Image::PrintDepth()
+{
+    for(size_t i = 0; i < segments.size(); i++)
+    {
+        cout << segments[i].label << "\nAverge depth = " << segments[i].box.averageDepth; 
+        cout << endl;
+    }
+}
+
 void Image::PrintSegments()
 {
     cout(imgHeight);
     cout(imgWidth);
     for(size_t i = 0; i < segments.size(); i++)
     {
-        cout << segments[i].label << "\nAverge depth = " << segments[i].box.averageDepth << 
-                                     "\nX1 = " << segments[i].box.x1 << 
-                                     "\nX2 = " << segments[i].box.x2 << endl;
+        cout << segments[i].label << endl;
 
-        /*for(size_t j = 0; j < segments[i].polygon.size(); j++)
+        for(size_t j = 0; j < segments[i].polygon.size(); j++)
         {
             cout << segments[i].polygon[j].x << " " << segments[i].polygon[j].y << endl;
-        }*/
+        }
         cout << endl;
     }
     cout << endl;
