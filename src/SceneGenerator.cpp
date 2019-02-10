@@ -5,8 +5,18 @@ static const char* fShader = "shaders/shader.frag";
 
 const float toRadians = 3.14159265f / 180.0f;
 const float reSize = 10;
+const float uniScale = 10.0f;
 
 using namespace std;
+
+bool SceneGenerator::lessThan(const Segment a, const Segment b)
+{
+	/*float ya = (a.box.y2 - a.box.y1) / 2.0f;
+	float yb = (b.box.y2 - b.box.y1) / 2.0f;
+    return (ya < yb);
+	*/
+	return (a.box.y2 < b.box.y2);
+}
 
 SceneGenerator::SceneGenerator()
 {
@@ -26,6 +36,19 @@ SceneGenerator::SceneGenerator()
     Init();
 }
 
+void SceneGenerator::VerifyLocation(Image* image)
+{	
+	std::sort(image->segments.begin(), image->segments.end(), lessThan);
+	for(size_t i = 1; i < image->segments.size(); i++)
+	{
+		if(image->segments[i].box.averageDepth < image->segments[i - 1].box.averageDepth)
+		{
+			image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth;
+		}
+	}
+	
+}
+
 void SceneGenerator::AddModels(Image image)
 {
 	float aspect = (float)mainWindow.getBufferWidth() / (float)mainWindow.getBufferHeight();
@@ -34,7 +57,7 @@ void SceneGenerator::AddModels(Image image)
 		if(image.segments[i].label == "car")
 		{
 			int x = rand() % 2;
-			Model* newModel = new Model(image.segments[i].box.averageDepth * 4, 
+			Model* newModel = new Model(image.segments[i].box.averageDepth * 2, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
 			if(x == 0)
@@ -60,8 +83,20 @@ void SceneGenerator::AddModels(Image image)
 			newModel->LoadModel("assets/person/person.obj");
 			newModel->rotY = -90.0f;
 			newModel->scale = 0.4f;
-			cout << newModel->xPos << endl;
+			//cout << image.segments[i].box.maxDepth << endl;
 			modelList.push_back(*newModel);
+		}
+
+		if(image.segments[i].label == "vegetation")
+		{
+			Model* newModel = new Model(image.segments[i].box.averageDepth * 2, 
+								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
+								        0.0f);
+			newModel->LoadModel("assets/tree2/Tree.obj");
+			newModel->yPos = 6.0f;
+			modelList.push_back(*newModel);
+			int no = (image.segments[i].box.maxDepth - image.segments[i].box.minDepth) / (newModel->zSize * uniScale);
+			cout << no << endl;
 		}
 	}
 	
@@ -173,7 +208,7 @@ void SceneGenerator::RenderSceneGenerator()
 
 	for(size_t i = 0; i < modelList.size(); i++)
 	{
-		TransformAndRenderModel(&modelList[i], &dullMaterial, modelList[i].xPos, modelList[i].yPos, modelList[i].depth, modelList[i].scale * 10, modelList[i].rotX, modelList[i].rotY, modelList[i].rotZ);
+		TransformAndRenderModel(&modelList[i], &dullMaterial, modelList[i].xPos, modelList[i].yPos, modelList[i].depth, modelList[i].scale * uniScale, modelList[i].rotX, modelList[i].rotY, modelList[i].rotZ);
 	}
 	
 }

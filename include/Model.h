@@ -19,6 +19,7 @@ public:
 	float depth, xPos, yPos;
 	float rotX, rotY, rotZ;
 	float scale;
+	float zSize;
 
 	Model();
 	Model(float d, float x, float y);

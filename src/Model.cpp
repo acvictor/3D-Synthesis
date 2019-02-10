@@ -75,12 +75,13 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 	std::vector<GLfloat> vertices;
 	std::vector<unsigned int> indices;
 
-	GLfloat maxX = -10000.0f;
+	GLfloat maxZ = -10000.0f, minZ = 10000.0f;
 
 	for (size_t i = 0; i < mesh->mNumVertices; i++)
 	{
 		vertices.insert(vertices.end(), { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z });
-		maxX = std::max(maxX, mesh->mVertices[i].y);
+		maxZ= std::max(maxZ, mesh->mVertices[i].z);
+		minZ= std::min(minZ, mesh->mVertices[i].z);
 		if (mesh->mTextureCoords[0])
 		{
 			vertices.insert(vertices.end(), { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y });
@@ -91,7 +92,7 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 		vertices.insert(vertices.end(), { -mesh->mNormals[i].x, -mesh->mNormals[i].y, -mesh->mNormals[i].z });
 	}
 
-	//std::cout << maxX << std::endl;
+	this->zSize = maxZ - minZ;
 
 	for (size_t i = 0; i < mesh->mNumFaces; i++)
 	{
