@@ -45,8 +45,7 @@ void SceneGenerator::VerifyLocation(Image* image)
 		{
 			image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth;
 		}
-	}
-	
+	}	
 }
 
 void SceneGenerator::AddModels(Image image)
@@ -65,12 +64,14 @@ void SceneGenerator::AddModels(Image image)
 				newModel->LoadModel("assets/car/car.obj");
 				newModel->rotX = -90.0f;
 				newModel->rotZ = -90.0f;
+				newModel->yPos = 4.0f;
 			}
 			else if(x == 1)
 			{
 				newModel->LoadModel("assets/SUV/SUV.obj");
 				newModel->rotX = -90.0f;
 				newModel->rotZ = -180.0f;
+				newModel->yPos = 4.0f;
 			}
 			modelList.push_back(*newModel);
 		}
@@ -83,6 +84,7 @@ void SceneGenerator::AddModels(Image image)
 			newModel->LoadModel("assets/person/person.obj");
 			newModel->rotY = -90.0f;
 			newModel->scale = 0.4f;
+			newModel->yPos = 4.0f;
 			//cout << image.segments[i].box.maxDepth << endl;
 			modelList.push_back(*newModel);
 		}
@@ -93,7 +95,7 @@ void SceneGenerator::AddModels(Image image)
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
 			newModel->LoadModel("assets/tree2/Tree.obj");
-			newModel->yPos = 6.0f;
+			newModel->yPos = 10.0f;
 			modelList.push_back(*newModel);
 			int no = (image.segments[i].box.maxDepth - image.segments[i].box.minDepth) / (newModel->zSize * uniScale);
 			cout << no << endl;
@@ -203,7 +205,7 @@ void SceneGenerator::CreateShaders()
 void SceneGenerator::RenderSceneGenerator()
 {
 	glm::mat4 model;	
-	TransformAndRenderMesh(meshList[0], &dullMaterial, 0.0f, -4.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
+	TransformAndRenderMesh(meshList[0], &dullMaterial, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 	//TransformAndRenderMesh(meshList[1], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 
 	for(size_t i = 0; i < modelList.size(); i++)

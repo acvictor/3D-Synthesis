@@ -17,13 +17,13 @@ int main(int argc, char** argv)
     image.GetDepth(fName2);   
     //image.PrintDepth();
 
-    SceneGenerator generator = SceneGenerator();
+    /*SceneGenerator generator = SceneGenerator();
     generator.VerifyLocation(&image);
     generator.AddModels(image);
 	while (!generator.mainWindow.getShouldClose())
 	{
 		generator.Render();
-	}
+	}*/
 
 	return 0;
 }

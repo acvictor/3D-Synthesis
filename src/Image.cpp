@@ -5,6 +5,7 @@
 
 bool drawBox = 0;
 bool show = 0;
+float factor = 1.0f;
 
 Image::Image()
 {
@@ -20,6 +21,122 @@ struct lessSecond {
         return a.second > b.second;
     }
 };
+
+float norm2(glm::vec2 a, glm::vec2 b)
+{
+    float dx = b.x - a.x;
+    float dy = b.y - a.y;
+    return dx * dx + dy * dy;
+}
+
+glm::vec2 Image::Project(glm::vec3 p, glm::mat4 m)
+{
+    float x = m[0][0] * p.x + m[0][1] * p.y + m[0][2] * p.z + m[0][3] * 1;
+    float y = m[1][0] * p.x + m[1][1] * p.y + m[1][2] * p.z + m[1][3] * 1;
+    float w = m[3][0] * p.x + m[3][1] * p.y + m[3][2] * p.z + m[3][3] * 1;
+    return glm::vec2(2048 * (x / w + 1) / 2.0f, 1024 - 1024 * (y / w + 1) / 2.0f);
+}
+
+float Image::Evaluate(glm::mat4 p)
+{
+    glm::vec2 c1 = Project(a1, p);
+    glm::vec2 c2 = Project(a2, p);
+    glm::vec2 c3 = Project(a3, p);
+    glm::vec2 c4 = Project(a4, p);
+    return norm2(p1, c1) + norm2(p2, c2) + norm2(p3, c3) + norm2(p4, c4);
+}
+
+glm::mat4 Image::Perturb()
+{
+    glm::mat4 p = proj;
+
+    /*#pragma omp parallel for collapse(2)
+    for(int i = 0; i < 4; i++)
+    {
+        for(int j = 0; j < 4; j++)
+        {
+            if(rand() % 2)
+                p[i][j] +=  (2.0f * ((float)rand() / (float)RAND_MAX) - 1.0f) / factor;
+            //cout << p[i][j] << " ";
+        }    
+    }*/
+
+    int i = rand() % 4;
+    int j = rand() % 4;
+    p[i][j] +=  (2.0f * ((float)rand() / (float)RAND_MAX) - 1.0f) / factor;
+
+    return p;    
+}
+
+float Image::Approximate()
+{
+    float est = Evaluate(proj);
+    //cout << est << endl;
+    
+    srand(time(0));
+
+    for(int i = 0; i < 100000; i++)
+    {
+        glm::mat4 temp = Perturb();
+        float estemp = Evaluate(temp);
+        //cout << estemp << endl;
+        if(estemp < est)
+        {
+            proj = temp;
+            est = estemp;
+        }
+    }
+
+    return est;
+}
+
+void Image::FindProjectionMatrix(float d[4])
+{
+    p1 = glm::vec2(846, 528);
+    p2 = glm::vec2(1101, 528);
+    p3 = glm::vec2(477, 940);
+    p4 = glm::vec2(1779, 940);
+
+    a1 = glm::vec3(477, 0, d[0]);
+    a2 = glm::vec3(1779, 0, d[0]);
+    a3 = glm::vec3(477, 0, d[3]);
+    a4 = glm::vec3(1779, 0, d[3]);
+
+    float aaa[16] = {-0.00233721, 0.0, 0.0206043, 2.27619, 
+                      1.2445e-06, 0.58, -0.0394113, 2.22194, 
+                      0.0, 0.0, -1.0, 0.2, 
+                     -1.5313e-06, 0.0, -0.239277, -1.03858};
+    /*float aaa[16] = {0.29,  0.0,  0.0, 0.0, 
+                      0.0, 0.58,  0.0, 0.0, 
+                      0.0,  0.0, -1.0, 0.2, 
+                      0.0,  0.0, -1.0, 0.0};*/
+    for(int l = 0; l < 1; l++)
+    {
+        proj = glm::make_mat4(aaa);
+        float err = 0.0;
+
+        for(int i = 0; i < 1000; i++) 
+        {
+            factor = 10000.0f;
+            err = Approximate();
+            factor = 100000.0f;
+            err = Approximate();
+            if(i % 100 == 0)
+                cout << err << endl;
+        }
+
+        cout << err << endl;
+        for(int i = 0; i < 4; i++)
+        {
+            for(int j = 0; j < 4; j++)
+            {
+                cout << proj[i][j] << " ";
+            }
+            cout << endl;    
+        }
+        cout << endl;
+    }
+}
 
 void Image::GetDepth(string fName)
 {
@@ -46,6 +163,9 @@ void Image::GetDepth(string fName)
                 file >> depth[i][j];
             }
         }
+
+        float t[4] = {depth[846][528], depth[1101][528], depth[477][940], depth[1779][940]};
+        FindProjectionMatrix(t);
 
         // (y)i - rows, (x)j - cols, (i, j)
         #pragma omp parallel for
