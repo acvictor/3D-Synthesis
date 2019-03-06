@@ -23,7 +23,7 @@ public:
 	vector<Segment> segments;
     int imgHeight, imgWidth;
     string name;
-    glm::mat4 proj;
+    glm::mat4 proj, inverse;
     glm::vec2 p1, p2, p3, p4;
     glm::vec3 a1, a2, a3, a4;
 
@@ -34,6 +34,7 @@ public:
     glm::mat4 Perturb();
     float Approximate();
 
+    void InverseProject();
     void ReadJson(string fName);
     void PrintSegments();
     void ComputeBoundingBox();

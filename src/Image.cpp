@@ -11,6 +11,12 @@ Image::Image()
 {
 	imgHeight = 0;
 	imgWidth = 0;
+
+    float inv[16] = {3.44827586,  0.0,         0.0,  0.0,
+                     0.0,         1.72413793,  0.0,  0.0,
+                    -0.0,        -0.0,        -0.0, -1.0,
+                    -0.0,        -0.0,         5.0, -5.0};
+    inverse = glm::make_mat4(inv);
 }
 
 template <typename T1, typename T2>
@@ -73,8 +79,6 @@ float Image::Approximate()
     float est = Evaluate(proj);
     //cout << est << endl;
     
-    srand(time(0));
-
     for(int i = 0; i < 100000; i++)
     {
         glm::mat4 temp = Perturb();
@@ -102,40 +106,42 @@ void Image::FindProjectionMatrix(float d[4])
     a3 = glm::vec3(477, 0, d[3]);
     a4 = glm::vec3(1779, 0, d[3]);
 
-    float aaa[16] = {-0.00233721, 0.0, 0.0206043, 2.27619, 
-                      1.2445e-06, 0.58, -0.0394113, 2.22194, 
+    float aaa[16] = {-0.00233721, 0.0, 0.0206022, 2.27631, 
+                      1.04394e-06, 0.58, -0.0394115, 2.22219, 
                       0.0, 0.0, -1.0, 0.2, 
-                     -1.5313e-06, 0.0, -0.239277, -1.03858};
+                     -1.27455e-06, 0.0, -0.239274, -1.03891};
     /*float aaa[16] = {0.29,  0.0,  0.0, 0.0, 
                       0.0, 0.58,  0.0, 0.0, 
                       0.0,  0.0, -1.0, 0.2, 
                       0.0,  0.0, -1.0, 0.0};*/
-    for(int l = 0; l < 1; l++)
+    proj = glm::make_mat4(aaa);
+
+    srand(time(0));
+
+    float err = 0.0;
+
+    for(int i = 0; i < 1000; i++) 
     {
-        proj = glm::make_mat4(aaa);
-        float err = 0.0;
-
-        for(int i = 0; i < 1000; i++) 
-        {
-            factor = 10000.0f;
-            err = Approximate();
-            factor = 100000.0f;
-            err = Approximate();
-            if(i % 100 == 0)
-                cout << err << endl;
-        }
-
-        cout << err << endl;
-        for(int i = 0; i < 4; i++)
-        {
-            for(int j = 0; j < 4; j++)
-            {
-                cout << proj[i][j] << " ";
-            }
-            cout << endl;    
-        }
-        cout << endl;
+        factor = 100000.0f;
+        err = Approximate();
+        factor = 10000.0f;
+        err = Approximate();
+        factor = 100000.0f;
+        err = Approximate();
+        if(i % 100 == 0)
+            cout << err << endl;
     }
+
+    cout << err << endl;
+    for(int i = 0; i < 4; i++)
+    {
+        for(int j = 0; j < 4; j++)
+        {
+            cout << proj[i][j] << " ";
+        }
+        cout << endl;    
+    }
+    cout << endl;
 }
 
 void Image::GetDepth(string fName)
@@ -165,7 +171,13 @@ void Image::GetDepth(string fName)
         }
 
         float t[4] = {depth[846][528], depth[1101][528], depth[477][940], depth[1779][940]};
-        FindProjectionMatrix(t);
+        
+        /* 
+         * Uncomment to compute Projection Matrix
+         * 
+         *
+         FindProjectionMatrix(t);
+         */
 
         // (y)i - rows, (x)j - cols, (i, j)
         #pragma omp parallel for
@@ -203,7 +215,7 @@ void Image::GetDepth(string fName)
 
             if(nOfPixels == 0)
             {
-                cout << "Unable to get depth for " << segments[k].label << "\nObject number " << k + 1 << " in " << name << ".json\n";
+                cout << "Unable to get depth for " << segments[k].label << "\nObject number " << k + 1 << " in " << name << "json\n";
                 nOfPixels++;                
             }
 
@@ -280,8 +292,29 @@ void Image::PrintSegments()
     cout << endl;
 }
 
+void Image::InverseProject()
+{
+    #pragma omp parallel for
+    for(size_t i = 0; i < segments.size(); i++)
+    {
+        float x1 = segments[i].box.x1;
+        float y1 = segments[i].box.y1;
+        float x2 = segments[i].box.x1;
+        float y2 = segments[i].box.y2;
+
+        float x1dash = inverse[0][0] * x1 + inverse[0][1] * y1 + inverse[0][2] * 1.0 + inverse[0][3] * 1;
+        float x2dash = inverse[1][0] * x2 + inverse[1][1] * y2 + inverse[1][2] * 1.0 + inverse[1][3] * 1;
+        
+        float avgChange = ((x1dash - x1) / 2.0 + (x2dash - x2) / 2.0) / 2.0;
+
+        segments[i].box.x1 += avgChange;
+        segments[i].box.x2 += avgChange;                
+    }
+}
+
 void Image::ComputeBoundingBox()
 {
+    #pragma omp parallel for
     for(size_t i = 0; i < segments.size(); i++)
     {
         segments[i].ComputeBoundingBox();
@@ -302,7 +335,7 @@ void Image::ReadJson(string fName)
             if (found != string::npos) 
             {
                 int pos = found + word.length();
-                imgHeight =stoi(line.substr(pos, line.length() - pos - 1)); 
+                imgHeight = stoi(line.substr(pos, line.length() - pos - 1)); 
                 break;
             }
         }
