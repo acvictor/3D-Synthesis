@@ -15,7 +15,7 @@ int main(int argc, char** argv)
     const char *s2 = argv[2];
     string fName2(s2);
     image.GetDepth(fName2);   
-    //image.PrintSegments();
+    //image.PrintDepth();
 
     SceneGenerator generator = SceneGenerator();
     generator.VerifyLocation(&image);

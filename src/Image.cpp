@@ -56,17 +56,6 @@ glm::mat4 Image::Perturb()
 {
     glm::mat4 p = proj;
 
-    /*#pragma omp parallel for collapse(2)
-    for(int i = 0; i < 4; i++)
-    {
-        for(int j = 0; j < 4; j++)
-        {
-            if(rand() % 2)
-                p[i][j] +=  (2.0f * ((float)rand() / (float)RAND_MAX) - 1.0f) / factor;
-            //cout << p[i][j] << " ";
-        }    
-    }*/
-
     int i = rand() % 4;
     int j = rand() % 4;
     p[i][j] +=  (2.0f * ((float)rand() / (float)RAND_MAX) - 1.0f) / factor;
@@ -77,13 +66,11 @@ glm::mat4 Image::Perturb()
 float Image::Approximate()
 {
     float est = Evaluate(proj);
-    //cout << est << endl;
     
     for(int i = 0; i < 100000; i++)
     {
         glm::mat4 temp = Perturb();
         float estemp = Evaluate(temp);
-        //cout << estemp << endl;
         if(estemp < est)
         {
             proj = temp;
@@ -270,7 +257,9 @@ void Image::PrintDepth()
 {
     for(size_t i = 0; i < segments.size(); i++)
     {
-        cout << segments[i].label << "\nAverge depth = " << segments[i].box.averageDepth; 
+        cout << segments[i].label << "\nAverge depth = " << segments[i].box.averageDepth;
+        cout << "\nMin depth = " << segments[i].box.minDepth << " Max Depth" << segments[i].box.maxDepth; 
+
         cout << endl;
     }
 }

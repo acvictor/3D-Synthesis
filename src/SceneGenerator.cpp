@@ -4,7 +4,8 @@ static const char* vShader = "shaders/shader.vert";
 static const char* fShader = "shaders/shader.frag";
 
 const float toRadians = 3.14159265f / 180.0f;
-const float reSize = 20;
+const float reSize = 16;
+const float xFactor = 5.0f;
 const float uniScale = 10.0f;
 
 using namespace std;
@@ -43,6 +44,14 @@ void SceneGenerator::VerifyLocation(Image* image)
 	{
 		if(image->segments[i].box.averageDepth > image->segments[i - 1].box.averageDepth)
 		{
+			image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth + 2;
+		}
+	}	
+
+	for(size_t i = 1; i < image->segments.size(); i++)
+	{
+		if(image->segments[i].box.averageDepth > image->segments[i - 1].box.averageDepth)
+		{
 			image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth;
 		}
 	}	
@@ -55,8 +64,9 @@ void SceneGenerator::AddModels(Image image)
 	{
 		if(image.segments[i].label == "car")
 		{
+			float temp = image.segments[i].box.averageDepth * 6;
 			int x = rand() % 2;
-			Model* newModel = new Model(image.segments[i].box.averageDepth * 4, 
+			Model* newModel = new Model(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
 			if(x == 0)
@@ -78,7 +88,8 @@ void SceneGenerator::AddModels(Image image)
 
 		if(image.segments[i].label == "person")
 		{
-			Model* newModel = new Model(image.segments[i].box.averageDepth * 4, 
+			float temp = image.segments[i].box.averageDepth * 6;
+			Model* newModel = new Model(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
 			newModel->LoadModel("assets/person/person.obj");
@@ -89,16 +100,16 @@ void SceneGenerator::AddModels(Image image)
 			modelList.push_back(*newModel);
 		}
 
-		if(image.segments[i].label == "pole")
+		/*if(image.segments[i].label == "pole")
 		{
-			Model* newModel = new Model(image.segments[i].box.averageDepth * 4, 
+			Model* newModel = new Model(image.segments[i].box.averageDepth * 6, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
 			newModel->LoadModel("assets/pole/pole.obj");
 			newModel->rotX = -90.0f;
 			newModel->yPos = 10.0f;
 			modelList.push_back(*newModel);
-		}
+		}*/
 
 		/*if(image.segments[i].label == "traffic sign")
 		{
@@ -116,15 +127,16 @@ void SceneGenerator::AddModels(Image image)
 		{
 			Model* model = new Model();
 			model->LoadModel("assets/tree2/Tree.obj");
-			float size = 2;
+			float size = 3;
 			int no = (image.segments[i].box.maxDepth - image.segments[i].box.minDepth) / size;
 			
 			for(int j = 0; j < no; j++)
 			{
-				model->SetValues(image.segments[i].box.minDepth * 4 + j * size * uniScale, 
+				float temp = image.segments[i].box.minDepth * 2 + j * size * uniScale;
+				model->SetValues(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f); 
-				model->scale = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + 1;
+				model->scale = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + 2;
 				model->yPos = uniScale * model->scale;				
 				modelList.push_back(*model);
 			}
@@ -344,5 +356,5 @@ void SceneGenerator::Init()
 								0.6f, 0.3f,
 								0.0f, -15.0f, -10.0f);
 
-    projection = glm::perspective(toRadians * 60.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 600.0f);
+    projection = glm::perspective(toRadians * 60.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 300.0f);
 }
