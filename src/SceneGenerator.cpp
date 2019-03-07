@@ -121,13 +121,12 @@ void SceneGenerator::AddModels(Image image)
 			
 			for(int j = 0; j < no; j++)
 			{
-				Model* newModel = new Model(image.segments[i].box.minDepth * 4 + j * size * uniScale, 
+				model->SetValues(image.segments[i].box.minDepth * 4 + j * size * uniScale, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
-								        0.0f);
-				newModel->LoadModel("assets/tree2/Tree.obj");
-				newModel->scale = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + 1;
-				newModel->yPos = uniScale * newModel->scale;				
-				modelList.push_back(*newModel);
+								        0.0f); 
+				model->scale = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + 1;
+				model->yPos = uniScale * model->scale;				
+				modelList.push_back(*model);
 			}
 		}
 	}
@@ -345,5 +344,5 @@ void SceneGenerator::Init()
 								0.6f, 0.3f,
 								0.0f, -15.0f, -10.0f);
 
-    projection = glm::perspective(toRadians * 60.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 300.0f);
+    projection = glm::perspective(toRadians * 60.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 600.0f);
 }

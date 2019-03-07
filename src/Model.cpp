@@ -20,6 +20,15 @@ Model::Model(float d, float x, float y)
 	scale = 1.0f;
 }
 
+void Model::SetValues(float d, float x, float y)
+{
+	depth = -d;
+	xPos = x;
+	yPos = y;
+	rotX = rotY = rotZ = 0.0f;
+	scale = 1.0f;
+}
+
 void Model::RenderModel()
 {
 	for (size_t i = 0; i < meshList.size(); i++)

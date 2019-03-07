@@ -24,6 +24,7 @@ public:
 	Model();
 	Model(float d, float x, float y);
 
+	void SetValues(float d, float x, float y);
 	void LoadModel(const std::string& fileName);
 	void RenderModel();
 	void ClearModel();
