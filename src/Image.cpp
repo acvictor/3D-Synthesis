@@ -149,11 +149,11 @@ void Image::GetDepth(string fName)
     if (file.is_open())
     {
         float v;
-        for (size_t i = 0; i < imgWidth; i++)
+        for (size_t i = 0; i < imgHeight; i++)
         {
-            for(size_t j = 0; j < imgHeight; j++)
+            for(size_t j = 0; j < imgWidth; j++)
             {
-                file >> depth[i][j];
+                file >> depth[j][i];
             }
         }
 

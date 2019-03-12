@@ -12,10 +12,6 @@ using namespace std;
 
 bool SceneGenerator::lessThan(const Segment a, const Segment b)
 {
-	/*float ya = (a.box.y2 - a.box.y1) / 2.0f;
-	float yb = (b.box.y2 - b.box.y1) / 2.0f;
-    return (ya < yb);
-	*/
 	return (a.box.y2 < b.box.y2);
 }
 
@@ -44,7 +40,7 @@ void SceneGenerator::VerifyLocation(Image* image)
 	{
 		if(image->segments[i].box.averageDepth > image->segments[i - 1].box.averageDepth)
 		{
-			image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth + 2;
+			image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth;
 		}
 	}	
 
@@ -339,7 +335,7 @@ void SceneGenerator::Init()
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 60.0f, 0.0f, 10.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 0.5f);
 
 	brickTexture = Texture("textures/brick.png");
 	brickTexture.LoadTextureA();
