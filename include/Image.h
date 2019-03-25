@@ -35,6 +35,8 @@ public:
     float Approximate();
 
     void InverseProject();
+    void Adjust();
+    static bool lessThan(const Segment a, const Segment b);
     void ReadJson(string fName);
     void PrintSegments();
     void ComputeBoundingBox();

@@ -4,8 +4,9 @@ static const char* vShader = "shaders/shader.vert";
 static const char* fShader = "shaders/shader.frag";
 
 const float toRadians = 3.14159265f / 180.0f;
-const float reSize = 16;
+const float reSize = 15;
 const float xFactor = 5.0f;
+const float zFactor = 3.0f;
 const float uniScale = 10.0f;
 
 using namespace std;
@@ -36,21 +37,27 @@ SceneGenerator::SceneGenerator()
 void SceneGenerator::VerifyLocation(Image* image)
 {	
 	std::sort(image->segments.begin(), image->segments.end(), lessThan);
+	for(size_t i = 0; i < image->segments.size(); i++)
+	{
+		cout << image->segments[i].label << " " << image->segments[i].box.averageDepth << " " << image->segments[i].box.y2 << endl;
+	}
+	cout << endl;
 	for(size_t i = 1; i < image->segments.size(); i++)
 	{
-		if(image->segments[i].box.averageDepth > image->segments[i - 1].box.averageDepth)
+		// Y increases downwards
+		if(abs(image->segments[i].box.y2 - image->segments[i - 1].box.y2) < 10)
 		{
-			image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth;
+			if(image->segments[i].box.averageDepth > image->segments[i - 1].box.averageDepth)
+			{
+				image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth = (image->segments[i].box.averageDepth + image->segments[i - 1].box.averageDepth) / 2.0;
+			}
 		}
 	}	
 
-	for(size_t i = 1; i < image->segments.size(); i++)
+	for(size_t i = 0; i < image->segments.size(); i++)
 	{
-		if(image->segments[i].box.averageDepth > image->segments[i - 1].box.averageDepth)
-		{
-			image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth;
-		}
-	}	
+		cout << image->segments[i].label << " " << image->segments[i].box.averageDepth << " " << image->segments[i].box.y2 << endl;
+	}
 }
 
 void SceneGenerator::AddModels(Image image)
@@ -60,7 +67,7 @@ void SceneGenerator::AddModels(Image image)
 	{
 		if(image.segments[i].label == "car")
 		{
-			float temp = image.segments[i].box.averageDepth * 6;
+			float temp = image.segments[i].box.averageDepth * zFactor;
 			int x = rand() % 2;
 			Model* newModel = new Model(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
@@ -84,21 +91,21 @@ void SceneGenerator::AddModels(Image image)
 
 		if(image.segments[i].label == "person")
 		{
-			float temp = image.segments[i].box.averageDepth * 6;
+			float temp = image.segments[i].box.averageDepth * zFactor;
 			Model* newModel = new Model(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
 			newModel->LoadModel("assets/person/person.obj");
 			newModel->rotY = -90.0f;
-			newModel->scale = 0.4f;
-			newModel->yPos = 4.0f;
+			newModel->scale = 0.5f;
+			newModel->yPos = 5.0f;
 			//cout << image.segments[i].box.maxDepth << endl;
 			modelList.push_back(*newModel);
 		}
 
 		/*if(image.segments[i].label == "pole")
 		{
-			Model* newModel = new Model(image.segments[i].box.averageDepth * 6, 
+			Model* newModel = new Model(image.segments[i].box.averageDepth * zFactor
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
 			newModel->LoadModel("assets/pole/pole.obj");
@@ -109,7 +116,7 @@ void SceneGenerator::AddModels(Image image)
 
 		/*if(image.segments[i].label == "traffic sign")
 		{
-			Model* newModel = new Model(image.segments[i].box.averageDepth * 4, 
+			Model* newModel = new Model(image.segments[i].box.averageDepth * zFactor
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
 			newModel->LoadModel("assets/stopSign/StopSign.obj");
@@ -128,7 +135,7 @@ void SceneGenerator::AddModels(Image image)
 			
 			for(int j = 0; j < no; j++)
 			{
-				float temp = image.segments[i].box.minDepth * 2 + j * size * uniScale;
+				float temp = image.segments[i].box.minDepth * 1.5 + j * size * uniScale;
 				model->SetValues(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f); 
@@ -329,13 +336,13 @@ void SceneGenerator::Render()
 
 void SceneGenerator::Init()
 {
-	mainWindow = Window(1600, 800);
+	mainWindow = Window(1300, 650);
 	mainWindow.Initialise();
 
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(0.0f, 2.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 0.5f);
+	camera = Camera(glm::vec3(4.0f, 2.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 0.5f);
 
 	brickTexture = Texture("textures/brick.png");
 	brickTexture.LoadTextureA();

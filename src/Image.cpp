@@ -12,10 +12,10 @@ Image::Image()
 	imgHeight = 0;
 	imgWidth = 0;
 
-    float inv[16] = {3.44827586,  0.0,         0.0,  0.0,
-                     0.0,         1.72413793,  0.0,  0.0,
-                    -0.0,        -0.0,        -0.0, -1.0,
-                    -0.0,        -0.0,         5.0, -5.0};
+    float inv[16] = {6.75744681e+00, -2.13391632e+00,  5.58003700e+05, -5.60626283e+05,
+                    -3.85735891e-18, -5.92902000e-02, -1.80261253e+03,  1.82708746e+03,
+                     6.43634417e-18,  6.97225412e-03,  2.51514684e+03, -2.48536116e+03,
+                     1.83160963e-19, -1.72766341e-18, -4.36339962e-14,  1.00000000e+00};
     inverse = glm::make_mat4(inv);
 }
 
@@ -281,23 +281,47 @@ void Image::PrintSegments()
     cout << endl;
 }
 
+bool Image::lessThan(const Segment a, const Segment b)
+{
+	return (a.box.y2 < b.box.y2);
+}
+
+void Image::Adjust()
+{
+    std::sort(segments.begin(), segments.end(), lessThan);
+	
+	for(size_t i = segments.size() - 1; i > 0; i--)
+	{
+		// Y increases downwards
+		if(segments[i].box.averageDepth > segments[i - 1].box.averageDepth)
+		{
+			segments[i].box.averageDepth = segments[i - 1].box.averageDepth;
+		}
+	}	
+}
+
 void Image::InverseProject()
 {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(size_t i = 0; i < segments.size(); i++)
     {
         float x1 = segments[i].box.x1;
         float y1 = segments[i].box.y1;
-        float x2 = segments[i].box.x1;
+        float x2 = segments[i].box.x2;
         float y2 = segments[i].box.y2;
 
-        float x1dash = inverse[0][0] * x1 + inverse[0][1] * y1 + inverse[0][2] * 1.0 + inverse[0][3] * 1;
-        float x2dash = inverse[1][0] * x2 + inverse[1][1] * y2 + inverse[1][2] * 1.0 + inverse[1][3] * 1;
+        float near = .1, far = 300.0;
+        float z = (1/segments[i].box.averageDepth - 1/near)/(1/far - 1/near);
+
+        float x1dash = inverse[0][0] * x1 + inverse[0][1] * y1 + inverse[0][2] * z + inverse[0][3] * 1;
+        float x2dash = inverse[0][0] * x2 + inverse[0][1] * y2 + inverse[0][2] * z + inverse[0][3] * 1;
         
+
         float avgChange = ((x1dash - x1) / 2.0 + (x2dash - x2) / 2.0) / 2.0;
 
         segments[i].box.x1 += avgChange;
-        segments[i].box.x2 += avgChange;                
+        segments[i].box.x2 += avgChange; 
+        
     }
 }
 
