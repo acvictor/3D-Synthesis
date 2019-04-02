@@ -145,7 +145,7 @@ void Model::LoadMaterials(const aiScene * scene)
 					printf("Failed to load texture at: %s\n", texPath);
 					delete textureList[i];
 					textureList[i] = nullptr;
-				}
+				}				
 			}
 		}
 

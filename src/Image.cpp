@@ -12,6 +12,10 @@ Image::Image()
 	imgHeight = 0;
 	imgWidth = 0;
 
+    /*float inv[16] = { 6.15810664e+00, -5.62615291e+01, -1.12439084e+06,  1.14132474e+06,
+                      6.06108404e-03, -1.57862278e-03,  1.14818895e+03, -1.14726928e+03,
+                      1.13386747e-03,  4.35498197e-01,  1.54060612e+04, -1.55298191e+04,
+                     -6.57158767e-19,  1.79491369e-17,  6.20669260e-13,  1.00000000e+00};*/
     float inv[16] = {6.75744681e+00, -2.13391632e+00,  5.58003700e+05, -5.60626283e+05,
                     -3.85735891e-18, -5.92902000e-02, -1.80261253e+03,  1.82708746e+03,
                      6.43634417e-18,  6.97225412e-03,  2.51514684e+03, -2.48536116e+03,
@@ -167,7 +171,6 @@ void Image::GetDepth(string fName)
          */
 
         // (y)i - rows, (x)j - cols, (i, j)
-        #pragma omp parallel for
         for(size_t k = 0; k < segments.size(); k++)
         {
             float averageDepth = 0.0;
@@ -202,8 +205,9 @@ void Image::GetDepth(string fName)
 
             if(nOfPixels == 0)
             {
-                cout << "Unable to get depth for " << segments[k].label << "\nObject number " << k + 1 << " in " << name << "json\n";
-                nOfPixels++;                
+                segments.erase(segments.begin() + k);
+                k--;
+                continue;              
             }
 
             averageDepth /= (float)nOfPixels;
@@ -302,7 +306,56 @@ void Image::Adjust()
 
 void Image::InverseProject()
 {
+
+    float in[9] = {-1.18061356e+00, -2.90375747e+00,  2.58087415e+03,
+                   -2.12429347e-05, -7.17727742e-03, -4.57078599e-01,
+                    2.30509533e-05, -2.25309704e-03,  1.00000000e+00};
     //#pragma omp parallel for
+    for(size_t i = 0; i < segments.size(); i++)
+    {
+        if(segments[i].label == "vegetation")
+        {
+            float u = segments[i].box.x1;
+            float v = segments[i].box.y2;
+            if(u < 1024)
+            {
+                float x = in[0] * u + in[1] * v + in[2] * 1.0;
+                float w = in[6] * u + in[7] * v + in[8] * 1.0;
+
+                segments[i].box.x1 = x / w; 
+                segments[i].box.x2 = segments[i].box.x1 + 100;
+            } 
+            else
+            {
+                u = segments[i].box.x2;
+                float x = in[0] * u + in[1] * v + in[2] *1.0;
+                float w = in[6] * u + in[7] * v + in[8] *1.0;
+
+                segments[i].box.x2 = x / w;  
+                segments[i].box.x1 = segments[i].box.x2 - 100;
+            }
+            continue;
+        }
+
+        float u = segments[i].box.x1;
+        float v = segments[i].box.y2;
+
+        float x = in[0] * u + in[1] * v + in[2] * 1.0;
+        float w = in[6] * u + in[7] * v + in[8] * 1.0;
+
+        segments[i].box.x1 = x / w;  
+        //if(segments[i].label == "vegetation") cout << u << " " << v << " " << segments[i].box.x1 << endl;
+
+
+        u = segments[i].box.x2;
+        x = in[0] * u + in[1] * v + in[2] *1.0;
+        w = in[6] * u + in[7] * v + in[8] *1.0;
+
+        segments[i].box.x2 = x / w;  
+        //if(segments[i].label == "vegetation") cout << u << " " << segments[i].box.x2 << endl;
+
+    }
+    /*#pragma omp parallel for
     for(size_t i = 0; i < segments.size(); i++)
     {
         float x1 = segments[i].box.x1;
@@ -322,7 +375,7 @@ void Image::InverseProject()
         segments[i].box.x1 += avgChange;
         segments[i].box.x2 += avgChange; 
         
-    }
+    }*/
 }
 
 void Image::ComputeBoundingBox()
@@ -404,6 +457,8 @@ void Image::ReadJson(string fName)
                         break;
                     }
                 }
+                if(newSegment.label == "unlabeled" || newSegment.label == "static" ||  newSegment.label == "dynamic" || newSegment.label == "out of roi")
+                    continue;
                 segments.push_back(newSegment);
             }
         }

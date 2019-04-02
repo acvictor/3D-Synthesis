@@ -4,7 +4,7 @@ static const char* vShader = "shaders/shader.vert";
 static const char* fShader = "shaders/shader.frag";
 
 const float toRadians = 3.14159265f / 180.0f;
-const float reSize = 15;
+const float reSize = 70;
 const float xFactor = 5.0f;
 const float zFactor = 3.0f;
 const float uniScale = 10.0f;
@@ -37,11 +37,11 @@ SceneGenerator::SceneGenerator()
 void SceneGenerator::VerifyLocation(Image* image)
 {	
 	std::sort(image->segments.begin(), image->segments.end(), lessThan);
-	for(size_t i = 0; i < image->segments.size(); i++)
+	/*for(size_t i = 0; i < image->segments.size(); i++)
 	{
 		cout << image->segments[i].label << " " << image->segments[i].box.averageDepth << " " << image->segments[i].box.y2 << endl;
 	}
-	cout << endl;
+	cout << endl;*/
 	for(size_t i = 1; i < image->segments.size(); i++)
 	{
 		// Y increases downwards
@@ -54,10 +54,10 @@ void SceneGenerator::VerifyLocation(Image* image)
 		}
 	}	
 
-	for(size_t i = 0; i < image->segments.size(); i++)
+	/*for(size_t i = 0; i < image->segments.size(); i++)
 	{
 		cout << image->segments[i].label << " " << image->segments[i].box.averageDepth << " " << image->segments[i].box.y2 << endl;
-	}
+	}*/
 }
 
 void SceneGenerator::AddModels(Image image)
@@ -72,19 +72,21 @@ void SceneGenerator::AddModels(Image image)
 			Model* newModel = new Model(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
-			if(x == 0)
+			if(x == 1)
 			{
 				newModel->LoadModel("assets/car/car.obj");
 				newModel->rotX = -90.0f;
 				newModel->rotZ = -90.0f;
-				newModel->yPos = 4.0f;
+				newModel->scale = 1.2f;
+				newModel->yPos = 5.0f;
 			}
-			else if(x == 1)
+			else if(x == 0)
 			{
 				newModel->LoadModel("assets/SUV/SUV.obj");
 				newModel->rotX = -90.0f;
 				newModel->rotZ = -180.0f;
-				newModel->yPos = 4.0f;
+				newModel->scale = 1.5f;
+				newModel->yPos = 6.5f;
 			}
 			modelList.push_back(*newModel);
 		}
@@ -92,13 +94,14 @@ void SceneGenerator::AddModels(Image image)
 		if(image.segments[i].label == "person")
 		{
 			float temp = image.segments[i].box.averageDepth * zFactor;
+			//cout << ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize << endl;
 			Model* newModel = new Model(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
 			newModel->LoadModel("assets/person/person.obj");
 			newModel->rotY = -90.0f;
-			newModel->scale = 0.5f;
-			newModel->yPos = 5.0f;
+			newModel->scale = 0.7f;
+			newModel->yPos = 7.0f;
 			//cout << image.segments[i].box.maxDepth << endl;
 			modelList.push_back(*newModel);
 		}
@@ -130,8 +133,9 @@ void SceneGenerator::AddModels(Image image)
 		{
 			Model* model = new Model();
 			model->LoadModel("assets/tree2/Tree.obj");
-			float size = 3;
-			int no = (image.segments[i].box.maxDepth - image.segments[i].box.minDepth) / size;
+			float size = 5;
+			int no = (std::min(400.0f, image.segments[i].box.maxDepth) - image.segments[i].box.minDepth) / (size * 1.5);
+			cout << no << endl;
 			
 			for(int j = 0; j < no; j++)
 			{
@@ -139,7 +143,7 @@ void SceneGenerator::AddModels(Image image)
 				model->SetValues(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f); 
-				model->scale = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + 2;
+				model->scale = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + 4;
 				model->yPos = uniScale * model->scale;				
 				modelList.push_back(*model);
 			}
@@ -342,7 +346,7 @@ void SceneGenerator::Init()
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(4.0f, 2.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 4.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 0.5f);
 
 	brickTexture = Texture("textures/brick.png");
 	brickTexture.LoadTextureA();
@@ -359,5 +363,5 @@ void SceneGenerator::Init()
 								0.6f, 0.3f,
 								0.0f, -15.0f, -10.0f);
 
-    projection = glm::perspective(toRadians * 60.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 300.0f);
+    projection = glm::perspective(toRadians * 60.0f, (GLfloat)mainWindow.getBufferWidth() / mainWindow.getBufferHeight(), 0.1f, 400.0f);
 }
