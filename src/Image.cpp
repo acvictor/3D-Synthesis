@@ -12,10 +12,10 @@ Image::Image()
 	imgHeight = 0;
 	imgWidth = 0;
 
-    /*float inv[16] = { 6.15810664e+00, -5.62615291e+01, -1.12439084e+06,  1.14132474e+06,
-                      6.06108404e-03, -1.57862278e-03,  1.14818895e+03, -1.14726928e+03,
-                      1.13386747e-03,  4.35498197e-01,  1.54060612e+04, -1.55298191e+04,
-                     -6.57158767e-19,  1.79491369e-17,  6.20669260e-13,  1.00000000e+00};*/
+    /*float inv[16] = {6.15810664e+00, -5.62615291e+01, -1.12439084e+06,  1.14132474e+06,
+                       6.06108404e-03, -1.57862278e-03,  1.14818895e+03, -1.14726928e+03,
+                       1.13386747e-03,  4.35498197e-01,  1.54060612e+04, -1.55298191e+04,
+                      -6.57158767e-19,  1.79491369e-17,  6.20669260e-13,  1.00000000e+00};*/
     float inv[16] = {6.75744681e+00, -2.13391632e+00,  5.58003700e+05, -5.60626283e+05,
                     -3.85735891e-18, -5.92902000e-02, -1.80261253e+03,  1.82708746e+03,
                      6.43634417e-18,  6.97225412e-03,  2.51514684e+03, -2.48536116e+03,
@@ -31,109 +31,6 @@ struct lessSecond {
         return a.second > b.second;
     }
 };
-
-float norm2(glm::vec2 a, glm::vec2 b)
-{
-    float dx = b.x - a.x;
-    float dy = b.y - a.y;
-    return dx * dx + dy * dy;
-}
-
-glm::vec2 Image::Project(glm::vec3 p, glm::mat4 m)
-{
-    float x = m[0][0] * p.x + m[0][1] * p.y + m[0][2] * p.z + m[0][3] * 1;
-    float y = m[1][0] * p.x + m[1][1] * p.y + m[1][2] * p.z + m[1][3] * 1;
-    float w = m[3][0] * p.x + m[3][1] * p.y + m[3][2] * p.z + m[3][3] * 1;
-    return glm::vec2(2048 * (x / w + 1) / 2.0f, 1024 - 1024 * (y / w + 1) / 2.0f);
-}
-
-float Image::Evaluate(glm::mat4 p)
-{
-    glm::vec2 c1 = Project(a1, p);
-    glm::vec2 c2 = Project(a2, p);
-    glm::vec2 c3 = Project(a3, p);
-    glm::vec2 c4 = Project(a4, p);
-    return norm2(p1, c1) + norm2(p2, c2) + norm2(p3, c3) + norm2(p4, c4);
-}
-
-glm::mat4 Image::Perturb()
-{
-    glm::mat4 p = proj;
-
-    int i = rand() % 4;
-    int j = rand() % 4;
-    p[i][j] +=  (2.0f * ((float)rand() / (float)RAND_MAX) - 1.0f) / factor;
-
-    return p;    
-}
-
-float Image::Approximate()
-{
-    float est = Evaluate(proj);
-    
-    for(int i = 0; i < 100000; i++)
-    {
-        glm::mat4 temp = Perturb();
-        float estemp = Evaluate(temp);
-        if(estemp < est)
-        {
-            proj = temp;
-            est = estemp;
-        }
-    }
-
-    return est;
-}
-
-void Image::FindProjectionMatrix(float d[4])
-{
-    p1 = glm::vec2(846, 528);
-    p2 = glm::vec2(1101, 528);
-    p3 = glm::vec2(477, 940);
-    p4 = glm::vec2(1779, 940);
-
-    a1 = glm::vec3(477, 0, d[0]);
-    a2 = glm::vec3(1779, 0, d[0]);
-    a3 = glm::vec3(477, 0, d[3]);
-    a4 = glm::vec3(1779, 0, d[3]);
-
-    float aaa[16] = {-0.00233721, 0.0, 0.0206022, 2.27631, 
-                      1.04394e-06, 0.58, -0.0394115, 2.22219, 
-                      0.0, 0.0, -1.0, 0.2, 
-                     -1.27455e-06, 0.0, -0.239274, -1.03891};
-    /*float aaa[16] = {0.29,  0.0,  0.0, 0.0, 
-                      0.0, 0.58,  0.0, 0.0, 
-                      0.0,  0.0, -1.0, 0.2, 
-                      0.0,  0.0, -1.0, 0.0};*/
-    proj = glm::make_mat4(aaa);
-
-    srand(time(0));
-
-    float err = 0.0;
-
-    for(int i = 0; i < 1000; i++) 
-    {
-        factor = 100000.0f;
-        err = Approximate();
-        factor = 10000.0f;
-        err = Approximate();
-        factor = 100000.0f;
-        err = Approximate();
-        if(i % 100 == 0)
-            cout << err << endl;
-    }
-
-    cout << err << endl;
-    for(int i = 0; i < 4; i++)
-    {
-        for(int j = 0; j < 4; j++)
-        {
-            cout << proj[i][j] << " ";
-        }
-        cout << endl;    
-    }
-    cout << endl;
-}
 
 void Image::GetDepth(string fName)
 {
@@ -160,15 +57,6 @@ void Image::GetDepth(string fName)
                 file >> depth[j][i];
             }
         }
-
-        float t[4] = {depth[846][528], depth[1101][528], depth[477][940], depth[1779][940]};
-        
-        /* 
-         * Uncomment to compute Projection Matrix
-         * 
-         *
-         FindProjectionMatrix(t);
-         */
 
         // (y)i - rows, (x)j - cols, (i, j)
         for(size_t k = 0; k < segments.size(); k++)
@@ -304,12 +192,75 @@ void Image::Adjust()
 	}	
 }
 
+float xNorm(float x)
+{
+    return (x - 1024) / 1024.0;
+}
+
+float yNorm(float y)
+{
+    return (y - 512) / 512.0;
+}
+
 void Image::InverseProject()
 {
+    /*float in[12] = {-4.72019703e+00, -7.05760046e+01, -3.79073247e+03,  3.78160553e+03,
+                    1.28422170e-02, -1.20643492e+00, -6.81460386e+01,  6.79662635e+01,
+                    6.58140711e-04, -2.22558522e-02, -1.00304332e+00,  1.00000000e+00};
+
+    //#pragma omp parallel for
+    for(size_t i = 0; i < segments.size(); i++)
+    {
+        float z, near = 0.1, far = 80.0, u, v, x, w;
+        if(segments[i].label == "vegetation")
+        {
+            u = segments[i].box.x1;
+            v = yNorm(segments[i].box.y2);
+            z = (1 / segments[i].box.averageDepth - 1 / near) / ( 1 / far -  1 / near);
+            if(u < 1024)
+            {
+                u = xNorm(u);
+                x = in[0] * u + in[1] * v + in[2] * z + in[3] * 1.0;
+                w = in[8] * u + in[9] * v + in[10] * z + in[11] * 1.0;
+
+                segments[i].box.x1 = x / w; 
+                segments[i].box.x2 = segments[i].box.x1 + 100;
+            } 
+            else
+            {
+                u = xNorm(segments[i].box.x2);
+                x = in[0] * u + in[1] * v + in[2] * z + in[3] * 1.0;
+                w = in[8] * u + in[9] * v + in[10] * z + in[11] * 1.0;
+
+                segments[i].box.x2 = x / w;  
+                segments[i].box.x1 = segments[i].box.x2 - 100;
+            }
+        }
+        else
+        {
+            u = xNorm(segments[i].box.x1);
+            v = yNorm(segments[i].box.y2);
+            z = (1 / segments[i].box.averageDepth - 1 / near)/( 1 / far -  1 / near);
+
+            x = in[0] * u + in[1] * v + in[2] * z + in[3] * 1.0;
+            w = in[8] * u + in[9] * v + in[10] * z + in[11] * 1.0;
+
+            segments[i].box.x1 = x / w;  
+
+            u = xNorm(segments[i].box.x2);
+            x = in[0] * u + in[1] * v + in[2] * z + in[3] * 1.0;
+            w = in[8] * u + in[9] * v + in[10] * z + in[11] * 1.0;
+
+            segments[i].box.x2 = x / w; 
+        } 
+
+        cout << segments[i].box.x1 << endl;
+    }*/
 
     float in[9] = {-1.18061356e+00, -2.90375747e+00,  2.58087415e+03,
                    -2.12429347e-05, -7.17727742e-03, -4.57078599e-01,
                     2.30509533e-05, -2.25309704e-03,  1.00000000e+00};
+
     //#pragma omp parallel for
     for(size_t i = 0; i < segments.size(); i++)
     {
@@ -344,17 +295,14 @@ void Image::InverseProject()
         float w = in[6] * u + in[7] * v + in[8] * 1.0;
 
         segments[i].box.x1 = x / w;  
-        //if(segments[i].label == "vegetation") cout << u << " " << v << " " << segments[i].box.x1 << endl;
-
 
         u = segments[i].box.x2;
         x = in[0] * u + in[1] * v + in[2] *1.0;
         w = in[6] * u + in[7] * v + in[8] *1.0;
 
         segments[i].box.x2 = x / w;  
-        //if(segments[i].label == "vegetation") cout << u << " " << segments[i].box.x2 << endl;
-
     }
+
     /*#pragma omp parallel for
     for(size_t i = 0; i < segments.size(); i++)
     {
@@ -457,7 +405,7 @@ void Image::ReadJson(string fName)
                         break;
                     }
                 }
-                if(newSegment.label == "unlabeled" || newSegment.label == "static" ||  newSegment.label == "dynamic" || newSegment.label == "out of roi")
+                if(newSegment.label == "unlabeled" || newSegment.label == "static" ||  newSegment.label == "dynamic" || newSegment.label == "out of roi" || newSegment.label == "sky")
                     continue;
                 segments.push_back(newSegment);
             }

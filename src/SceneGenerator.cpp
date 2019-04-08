@@ -37,22 +37,31 @@ SceneGenerator::SceneGenerator()
 void SceneGenerator::VerifyLocation(Image* image)
 {	
 	std::sort(image->segments.begin(), image->segments.end(), lessThan);
-	/*for(size_t i = 0; i < image->segments.size(); i++)
+	for(size_t i = 0; i < image->segments.size(); i++)
 	{
 		cout << image->segments[i].label << " " << image->segments[i].box.averageDepth << " " << image->segments[i].box.y2 << endl;
 	}
-	cout << endl;*/
+	cout << endl;
 	for(size_t i = 1; i < image->segments.size(); i++)
 	{
 		// Y increases downwards
-		if(abs(image->segments[i].box.y2 - image->segments[i - 1].box.y2) < 10)
+		if(fabs(image->segments[i].box.y2 - image->segments[i - 1].box.y2) < 10)
 		{
 			if(image->segments[i].box.averageDepth > image->segments[i - 1].box.averageDepth)
 			{
 				image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth = (image->segments[i].box.averageDepth + image->segments[i - 1].box.averageDepth) / 2.0;
 			}
+			else if(fabs(image->segments[i].box.y2 - image->segments[i - 1].box.y2) < 5 && fabs(image->segments[i].box.averageDepth - image->segments[i - 1].box.averageDepth) > 1.0)
+			{
+				image->segments[i].box.averageDepth = image->segments[i - 1].box.averageDepth;
+			}
 		}
 	}	
+
+	for(size_t i = 0; i < image->segments.size(); i++)
+	{
+		cout << image->segments[i].label << " " << image->segments[i].box.averageDepth << " " << image->segments[i].box.y2 << endl;
+	}
 
 	/*for(size_t i = 0; i < image->segments.size(); i++)
 	{
@@ -346,7 +355,7 @@ void SceneGenerator::Init()
 	CreateObjects();
 	CreateShaders();
 
-	camera = Camera(glm::vec3(0.0f, 4.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 0.5f);
+	camera = Camera(glm::vec3(0.0f, 4.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 0.5f);
 
 	brickTexture = Texture("textures/brick.png");
 	brickTexture.LoadTextureA();

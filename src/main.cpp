@@ -18,8 +18,8 @@ int main(int argc, char** argv)
     //image.PrintDepth();
 
     SceneGenerator generator = SceneGenerator();
-    image.InverseProject();
     generator.VerifyLocation(&image);
+    image.InverseProject();
     generator.AddModels(image);
 	while (!generator.mainWindow.getShouldClose())
 	{

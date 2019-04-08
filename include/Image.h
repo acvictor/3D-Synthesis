@@ -29,11 +29,6 @@ public:
 
     Image();
 
-    glm::vec2 Project(glm::vec3 p, glm::mat4 m);
-    float Evaluate(glm::mat4 p);
-    glm::mat4 Perturb();
-    float Approximate();
-
     void InverseProject();
     void Adjust();
     static bool lessThan(const Segment a, const Segment b);
