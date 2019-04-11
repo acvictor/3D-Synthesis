@@ -63,6 +63,9 @@ public:
     void CreateObjects();
     void CreateShaders();
 
+    bool OutOfInterest(int);
+    void CollisionDetection();
+
     void AddModels(Image image);
     static bool lessThan(const Segment a, const Segment b);
     void VerifyLocation(Image* image);

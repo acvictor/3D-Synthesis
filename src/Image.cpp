@@ -302,36 +302,14 @@ void Image::InverseProject()
 
         segments[i].box.x2 = x / w;  
     }
-
-    /*#pragma omp parallel for
-    for(size_t i = 0; i < segments.size(); i++)
-    {
-        float x1 = segments[i].box.x1;
-        float y1 = segments[i].box.y1;
-        float x2 = segments[i].box.x2;
-        float y2 = segments[i].box.y2;
-
-        float near = .1, far = 300.0;
-        float z = (1/segments[i].box.averageDepth - 1/near)/(1/far - 1/near);
-
-        float x1dash = inverse[0][0] * x1 + inverse[0][1] * y1 + inverse[0][2] * z + inverse[0][3] * 1;
-        float x2dash = inverse[0][0] * x2 + inverse[0][1] * y2 + inverse[0][2] * z + inverse[0][3] * 1;
-        
-
-        float avgChange = ((x1dash - x1) / 2.0 + (x2dash - x2) / 2.0) / 2.0;
-
-        segments[i].box.x1 += avgChange;
-        segments[i].box.x2 += avgChange; 
-        
-    }*/
 }
 
 void Image::ComputeBoundingBox()
 {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(size_t i = 0; i < segments.size(); i++)
     {
-        segments[i].ComputeBoundingBox();
+        segments[i].ComputeBoundingBox(segments[i].label);
     }
 }
 

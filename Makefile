@@ -1,2 +1,2 @@
 all:
-	g++ -std=c++11 src/main.cpp src/Segment.cpp src/Image.cpp src/Window.cpp src/Shader.cpp src/Texture.cpp src/Camera.cpp src/Mesh.cpp src/Model.cpp src/PointLight.cpp src/SpotLight.cpp src/SceneGenerator.cpp src/ShadowMap.cpp src/Material.cpp src/Light.cpp src/DirectionalLight.cpp `pkg-config --libs --cflags opencv` -w -fopenmp -lGL -lglfw -lGLEW -lassimp -o p
+	g++ -std=c++11 src/main.cpp src/Segment.cpp src/Image.cpp src/Window.cpp src/Shader.cpp src/Texture.cpp src/Camera.cpp src/Mesh.cpp src/Model.cpp src/PointLight.cpp src/SpotLight.cpp src/SceneGenerator.cpp src/ShadowMap.cpp src/Material.cpp src/Light.cpp src/DirectionalLight.cpp src/AABB.cpp `pkg-config --libs --cflags opencv` -w -fopenmp -lGL -lglfw -lGLEW -lassimp -o p

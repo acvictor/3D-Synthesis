@@ -17,5 +17,5 @@ public:
 
 	Segment();
 
-	void ComputeBoundingBox(); 
+	void ComputeBoundingBox(std::string label); 
 };

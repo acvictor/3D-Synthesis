@@ -34,14 +34,59 @@ SceneGenerator::SceneGenerator()
     Init();
 }
 
+bool SceneGenerator::OutOfInterest(int i)
+{
+	if(modelList[i].label == "sky" || modelList[i].label == "ground" || modelList[i].label == "road" || modelList[i].label == "sidewalk" || modelList[i].label == "license plate" || modelList[i].label == "static" || modelList[i].label == "dynamic")
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+	
+}
+
+void SceneGenerator::CollisionDetection()
+{
+	for(int i = 0; i < modelList.size(); i++)
+	{
+		modelList[i].xSize *=  uniScale * modelList[i].scale;
+		modelList[i].bb.minx = modelList[i].xPos - modelList[i].xSize / 2.0;
+		modelList[i].bb.maxx = modelList[i].xPos + modelList[i].xSize / 2.0;
+
+		modelList[i].zSize *=  uniScale * modelList[i].scale;
+		modelList[i].bb.minz = modelList[i].depth + modelList[i].zSize / 2.0;
+		modelList[i].bb.maxz = modelList[i].depth - modelList[i].zSize / 2.0;
+	}
+
+	int axis = 2;
+	for(int i = 0; i < modelList.size(); i++)
+	{
+		if(modelList[i].label == "vegetation")
+			continue;
+		for(int j = 0; j < modelList.size(); j++)
+		{
+			if(j == i || modelList[j].label == "vegetation")
+				continue;
+
+			float move = modelList[i].bb.Intersect(modelList[j].bb, axis);
+			modelList[i].depth += move;
+		}		
+	}	
+}
+
 void SceneGenerator::VerifyLocation(Image* image)
 {	
 	std::sort(image->segments.begin(), image->segments.end(), lessThan);
-	for(size_t i = 0; i < image->segments.size(); i++)
+
+	/*for(size_t i = 0; i < image->segments.size(); i++)
 	{
 		cout << image->segments[i].label << " " << image->segments[i].box.averageDepth << " " << image->segments[i].box.y2 << endl;
 	}
 	cout << endl;
+	*/
+
 	for(size_t i = 1; i < image->segments.size(); i++)
 	{
 		// Y increases downwards
@@ -57,16 +102,6 @@ void SceneGenerator::VerifyLocation(Image* image)
 			}
 		}
 	}	
-
-	for(size_t i = 0; i < image->segments.size(); i++)
-	{
-		cout << image->segments[i].label << " " << image->segments[i].box.averageDepth << " " << image->segments[i].box.y2 << endl;
-	}
-
-	/*for(size_t i = 0; i < image->segments.size(); i++)
-	{
-		cout << image->segments[i].label << " " << image->segments[i].box.averageDepth << " " << image->segments[i].box.y2 << endl;
-	}*/
 }
 
 void SceneGenerator::AddModels(Image image)
@@ -81,6 +116,7 @@ void SceneGenerator::AddModels(Image image)
 			Model* newModel = new Model(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
+			newModel->label = image.segments[i].label;
 			if(x == 1)
 			{
 				newModel->LoadModel("assets/car/car.obj");
@@ -88,6 +124,8 @@ void SceneGenerator::AddModels(Image image)
 				newModel->rotZ = -90.0f;
 				newModel->scale = 1.2f;
 				newModel->yPos = 5.0f;
+				swap(newModel->ySize, newModel->xSize);
+				swap(newModel->ySize, newModel->zSize);				
 			}
 			else if(x == 0)
 			{
@@ -96,6 +134,7 @@ void SceneGenerator::AddModels(Image image)
 				newModel->rotZ = -180.0f;
 				newModel->scale = 1.5f;
 				newModel->yPos = 6.5f;
+				swap(newModel->zSize, newModel->ySize);
 			}
 			modelList.push_back(*newModel);
 		}
@@ -103,62 +142,43 @@ void SceneGenerator::AddModels(Image image)
 		if(image.segments[i].label == "person")
 		{
 			float temp = image.segments[i].box.averageDepth * zFactor;
-			//cout << ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize << endl;
 			Model* newModel = new Model(temp, 
 								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								        0.0f);
+			newModel->label = image.segments[i].label;
 			newModel->LoadModel("assets/person/person.obj");
 			newModel->rotY = -90.0f;
 			newModel->scale = 0.7f;
 			newModel->yPos = 7.0f;
-			//cout << image.segments[i].box.maxDepth << endl;
+			swap(newModel->xSize, newModel->zSize);
 			modelList.push_back(*newModel);
 		}
-
-		/*if(image.segments[i].label == "pole")
-		{
-			Model* newModel = new Model(image.segments[i].box.averageDepth * zFactor
-								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
-								        0.0f);
-			newModel->LoadModel("assets/pole/pole.obj");
-			newModel->rotX = -90.0f;
-			newModel->yPos = 10.0f;
-			modelList.push_back(*newModel);
-		}*/
-
-		/*if(image.segments[i].label == "traffic sign")
-		{
-			Model* newModel = new Model(image.segments[i].box.averageDepth * zFactor
-								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
-								        0.0f);
-			newModel->LoadModel("assets/stopSign/StopSign.obj");
-			newModel->rotY = -90.0f;
-			newModel->scale = 0.6;
-			newModel->yPos = 6.0f;
-			modelList.push_back(*newModel);
-		}*/
 
 		if(image.segments[i].label == "vegetation")
 		{
 			Model* model = new Model();
 			model->LoadModel("assets/tree2/Tree.obj");
+			model->label = image.segments[i].label;
 			float size = 5;
 			int no = (std::min(400.0f, image.segments[i].box.maxDepth) - image.segments[i].box.minDepth) / (size * 1.5);
-			cout << no << endl;
 			
 			for(int j = 0; j < no; j++)
 			{
 				float temp = image.segments[i].box.minDepth * 1.5 + j * size * uniScale;
+			
+				if(-temp < -400)
+					break;
+
 				model->SetValues(temp, 
-								      ((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
-								        0.0f); 
+								((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
+								0.0f); 
 				model->scale = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + 4;
 				model->yPos = uniScale * model->scale;				
 				modelList.push_back(*model);
 			}
 		}
 	}
-	
+	CollisionDetection();
 }
 
 void SceneGenerator::calcAverageNormals(unsigned int * indices, unsigned int indiceCount, GLfloat * vertices, unsigned int verticeCount, 
@@ -263,7 +283,6 @@ void SceneGenerator::RenderSceneGenerator()
 {
 	glm::mat4 model;	
 	TransformAndRenderMesh(meshList[0], &dullMaterial, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
-	//TransformAndRenderMesh(meshList[1], &dullMaterial, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 
 	for(size_t i = 0; i < modelList.size(); i++)
 	{
@@ -359,8 +378,10 @@ void SceneGenerator::Init()
 
 	brickTexture = Texture("textures/brick.png");
 	brickTexture.LoadTextureA();
+
 	marbleTexture  = Texture("textures/marble.jpg");
 	marbleTexture.LoadTexture();
+
 	plainTexture = Texture("textures/plain.png");
 	plainTexture.LoadTextureA();
 

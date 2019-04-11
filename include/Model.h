@@ -12,6 +12,7 @@
 
 #include "Mesh.h"
 #include "Texture.h"
+#include "AABB.h"
 
 class Model
 {
@@ -19,7 +20,10 @@ public:
 	float depth, xPos, yPos;
 	float rotX, rotY, rotZ;
 	float scale;
-	float zSize;
+	float zSize, xSize, ySize;
+
+	std::string label;
+	AABB bb;
 
 	Model();
 	Model(float d, float x, float y);

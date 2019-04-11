@@ -9,6 +9,7 @@ Model::Model()
 	xPos = 0.0f;
 	yPos = 0.0f;
 	scale = 1.0f;
+	bb = AABB();
 }
 
 Model::Model(float d, float x, float y)
@@ -48,7 +49,10 @@ void Model::LoadModel(const std::string & fileName)
 {
 	Assimp::Importer importer;
 	aiPropertyStore* props = aiCreatePropertyStore();
+
+	// Normalizing model mesh
 	aiSetImportPropertyInteger(props, "PP_PTV_NORMALIZE", 1);
+
 	const aiScene* scene = (aiScene*)aiImportFileExWithProperties(fileName.c_str(),
 	aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_PreTransformVertices,
     NULL,
@@ -84,24 +88,34 @@ void Model::LoadMesh(aiMesh * mesh, const aiScene * scene)
 	std::vector<GLfloat> vertices;
 	std::vector<unsigned int> indices;
 
-	GLfloat maxZ = -10000.0f, minZ = 10000.0f;
+	GLfloat maxZ = (float)(INT_MIN), minZ = (float)INT_MAX;
+	GLfloat maxY = (float)(INT_MIN), minY = (float)INT_MAX;
+	GLfloat maxX = (float)(INT_MIN), minX = (float)INT_MAX;
 
 	for (size_t i = 0; i < mesh->mNumVertices; i++)
 	{
 		vertices.insert(vertices.end(), { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z });
-		maxZ= std::max(maxZ, mesh->mVertices[i].z);
-		minZ= std::min(minZ, mesh->mVertices[i].z);
-		if (mesh->mTextureCoords[0])
+
+		maxZ = std::max(maxZ, mesh->mVertices[i].z); minZ = std::min(minZ, mesh->mVertices[i].z);
+		maxY = std::max(maxY, mesh->mVertices[i].y); minY = std::min(minY, mesh->mVertices[i].y);
+		maxX = std::max(maxX, mesh->mVertices[i].x); minX = std::min(minX, mesh->mVertices[i].x);
+
+		if (mesh->mTextureCoords[0]) 
 		{
 			vertices.insert(vertices.end(), { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y });
 		}
-		else {
+		else 
+		{
 			vertices.insert(vertices.end(), { 0.0f, 0.0f });
 		}
 		vertices.insert(vertices.end(), { -mesh->mNormals[i].x, -mesh->mNormals[i].y, -mesh->mNormals[i].z });
 	}
 
 	this->zSize = maxZ - minZ;
+	this->ySize = maxY - minY;
+	this->xSize = maxX - minX;
+	
+	this->bb = AABB(minX, maxX, minY, maxY, minZ, maxZ);
 
 	for (size_t i = 0; i < mesh->mNumFaces; i++)
 	{
