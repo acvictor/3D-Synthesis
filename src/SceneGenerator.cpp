@@ -36,7 +36,7 @@ SceneGenerator::SceneGenerator()
 
 bool SceneGenerator::OutOfInterest(int i)
 {
-	if(modelList[i].label == "sky" || modelList[i].label == "ground" || modelList[i].label == "road" || modelList[i].label == "sidewalk" || modelList[i].label == "license plate" || modelList[i].label == "static" || modelList[i].label == "dynamic")
+	if(modelList[i].label == "sidewalk" || modelList[i].label == "ground" || modelList[i].label == "road" || modelList[i].label == "sidewalk" || modelList[i].label == "license plate")
 	{
 		return 1;
 	}
@@ -51,11 +51,11 @@ void SceneGenerator::CollisionDetection()
 {
 	for(int i = 0; i < modelList.size(); i++)
 	{
-		modelList[i].xSize *=  uniScale * modelList[i].scale;
+		modelList[i].xSize *=  uniScale * modelList[i].scaleX;
 		modelList[i].bb.minx = modelList[i].xPos - modelList[i].xSize / 2.0;
 		modelList[i].bb.maxx = modelList[i].xPos + modelList[i].xSize / 2.0;
 
-		modelList[i].zSize *=  uniScale * modelList[i].scale;
+		modelList[i].zSize *=  uniScale * modelList[i].scaleZ;
 		modelList[i].bb.minz = modelList[i].depth + modelList[i].zSize / 2.0;
 		modelList[i].bb.maxz = modelList[i].depth - modelList[i].zSize / 2.0;
 	}
@@ -63,11 +63,11 @@ void SceneGenerator::CollisionDetection()
 	int axis = 2;
 	for(int i = 0; i < modelList.size(); i++)
 	{
-		if(modelList[i].label == "vegetation")
+		if(modelList[i].label == "vegetation" || OutOfInterest(i))
 			continue;
 		for(int j = 0; j < modelList.size(); j++)
 		{
-			if(j == i || modelList[j].label == "vegetation")
+			if(j == i || modelList[j].label == "vegetation" || OutOfInterest(j))
 				continue;
 
 			float move = modelList[i].bb.Intersect(modelList[j].bb, axis);
@@ -122,7 +122,7 @@ void SceneGenerator::AddModels(Image image)
 				newModel->LoadModel("assets/car/car.obj");
 				newModel->rotX = -90.0f;
 				newModel->rotZ = -90.0f;
-				newModel->scale = 1.2f;
+				newModel->SetScale(1.2f);
 				newModel->yPos = 5.0f;
 				swap(newModel->ySize, newModel->xSize);
 				swap(newModel->ySize, newModel->zSize);				
@@ -132,7 +132,7 @@ void SceneGenerator::AddModels(Image image)
 				newModel->LoadModel("assets/SUV/SUV.obj");
 				newModel->rotX = -90.0f;
 				newModel->rotZ = -180.0f;
-				newModel->scale = 1.5f;
+				newModel->SetScale(1.5f);
 				newModel->yPos = 6.5f;
 				swap(newModel->zSize, newModel->ySize);
 			}
@@ -148,7 +148,7 @@ void SceneGenerator::AddModels(Image image)
 			newModel->label = image.segments[i].label;
 			newModel->LoadModel("assets/person/person.obj");
 			newModel->rotY = -90.0f;
-			newModel->scale = 0.7f;
+			newModel->SetScale(0.7f);
 			newModel->yPos = 7.0f;
 			swap(newModel->xSize, newModel->zSize);
 			modelList.push_back(*newModel);
@@ -172,12 +172,27 @@ void SceneGenerator::AddModels(Image image)
 				model->SetValues(temp, 
 								((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize, 
 								0.0f); 
-				model->scale = static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + 4;
-				model->yPos = uniScale * model->scale;				
+				model->SetScale(static_cast <float> (rand()) / static_cast <float> (RAND_MAX) + 4);
+				model->yPos = uniScale * model->scaleX;				
 				modelList.push_back(*model);
 			}
 		}
+
+		if(image.segments[i].label == "sidewalk")
+		{
+			Model* model = new Model();
+			float temp = 0 * zFactor;
+			model->LoadModel("assets/side/sidewalk.obj");
+			model->label = image.segments[i].label;
+			model->SetValues(temp, 
+							((image.segments[i].box.x1 + image.segments[i].box.x2) / 2.0f - 1024) / reSize * 1.8, 
+							0.0f); 
+			model->SetScale(8, 10, 400);
+			model->yPos = 0;				
+			modelList.push_back(*model);
+		}
 	}
+	// TODO: Collision detection wrt pavement
 	CollisionDetection();
 }
 
@@ -244,14 +259,14 @@ void SceneGenerator::CreateObjects()
 	meshList.push_back(wall);
 }
 
-void SceneGenerator::TransformAndRenderModel(Model* m, Material* mat, GLfloat transX, GLfloat transY, GLfloat transZ, GLfloat scale, GLfloat rotX, GLfloat rotY, GLfloat rotZ)
+void SceneGenerator::TransformAndRenderModel(Model* m, Material* mat, GLfloat transX, GLfloat transY, GLfloat transZ, GLfloat scaleX, GLfloat scaleY, GLfloat scaleZ, GLfloat rotX, GLfloat rotY, GLfloat rotZ)
 {
 	glm::mat4 model = glm::mat4();
 	model = glm::translate(model, glm::vec3(transX, transY, transZ));
 	model = glm::rotate(model, rotX * toRadians, glm::vec3(1, 0, 0));
 	model = glm::rotate(model, rotY * toRadians, glm::vec3(0, 1, 0));
 	model = glm::rotate(model, rotZ * toRadians, glm::vec3(0, 0, 1));
-	model = glm::scale(model, glm::vec3(scale, scale, scale));
+	model = glm::scale(model, glm::vec3(scaleX, scaleY, scaleZ));
 	glUniformMatrix4fv(uniformModel, 1, GL_FALSE, glm::value_ptr(model));
 	mat->UseMaterial(uniformSpecularIntensity, uniformShininess);
 	m->RenderModel();
@@ -286,7 +301,7 @@ void SceneGenerator::RenderSceneGenerator()
 
 	for(size_t i = 0; i < modelList.size(); i++)
 	{
-		TransformAndRenderModel(&modelList[i], &dullMaterial, modelList[i].xPos, modelList[i].yPos, modelList[i].depth, modelList[i].scale * uniScale, modelList[i].rotX, modelList[i].rotY, modelList[i].rotZ);
+		TransformAndRenderModel(&modelList[i], &dullMaterial, modelList[i].xPos, modelList[i].yPos, modelList[i].depth, modelList[i].scaleX * uniScale, modelList[i].scaleY * uniScale, modelList[i].scaleZ * uniScale, modelList[i].rotX, modelList[i].rotY, modelList[i].rotZ);
 	}
 	
 }

@@ -62,6 +62,9 @@ void Image::GetDepth(string fName)
         for(size_t k = 0; k < segments.size(); k++)
         {
             float averageDepth = 0.0;
+            if(segments[k].label == "sidewalk")
+                continue;
+                
             Colour col = labels[segments[k].label];
 
             int xStart = (int)(segments[k].box.x1);
@@ -93,6 +96,7 @@ void Image::GetDepth(string fName)
 
             if(nOfPixels == 0)
             {
+                cout << segments[k].label << " not found\n";
                 segments.erase(segments.begin() + k);
                 k--;
                 continue;              
@@ -268,7 +272,32 @@ void Image::InverseProject()
         {
             float u = segments[i].box.x1;
             float v = segments[i].box.y2;
-            if(u < 1024)
+            cout << u << endl;
+            if(u < 500)
+            {
+                float x = in[0] * u + in[1] * v + in[2] * 1.0;
+                float w = in[6] * u + in[7] * v + in[8] * 1.0;
+
+                segments[i].box.x1 = x / w; 
+                segments[i].box.x2 = segments[i].box.x1 + 10;
+            } 
+            else
+            {
+                u = segments[i].box.x2;
+                float x = in[0] * u + in[1] * v + in[2] *1.0;
+                float w = in[6] * u + in[7] * v + in[8] *1.0;
+
+                segments[i].box.x2 = x / w;  
+                segments[i].box.x1 = segments[i].box.x2 - 10;
+            }
+            continue;
+        }
+
+        if(segments[i].label == "sidewalk")
+        {
+            float u = segments[i].box.x1;
+            float v = segments[i].box.y2;
+            if(u < 500)
             {
                 float x = in[0] * u + in[1] * v + in[2] * 1.0;
                 float w = in[6] * u + in[7] * v + in[8] * 1.0;

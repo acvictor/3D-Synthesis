@@ -12,7 +12,7 @@ void Segment::ComputeBoundingBox(std::string label)
 	float minX = inf, minY = inf; 
 	float maxX = -inf, maxY = -inf;
 
-	if(label == "sidewalk")
+	/*if(label == "sidewalk")
 	{
 		int ind1, ind2;
 		for(size_t i = 0; i < polygon.size(); i++)
@@ -31,9 +31,9 @@ void Segment::ComputeBoundingBox(std::string label)
 		}
 
 		box = BoundingBox(polygon[ind2].x, polygon[ind2].y, polygon[ind1].x, polygon[ind1].y);
-		std::cout << polygon[ind2].x << " " << polygon[ind2].y << " " << polygon[ind1].x << " " << polygon[ind1].y << std::endl;
+		// std::cout << polygon[ind2].x << " " << polygon[ind2].y << " " << polygon[ind1].x << " " << polygon[ind1].y << std::endl;
 		return;
-	}
+	}*/
 
 	for(size_t i = 0; i < polygon.size(); i++)
 	{

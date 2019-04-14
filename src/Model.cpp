@@ -8,7 +8,7 @@ Model::Model()
 	rotX = rotY = rotZ = 0.0f;
 	xPos = 0.0f;
 	yPos = 0.0f;
-	scale = 1.0f;
+	scaleX = scaleY = scaleZ = 1.0f;
 	bb = AABB();
 }
 
@@ -18,7 +18,7 @@ Model::Model(float d, float x, float y)
 	xPos = x;
 	yPos = y;
 	rotX = rotY = rotZ = 0.0f;
-	scale = 1.0f;
+	scaleX = scaleY = scaleZ = 1.0f;
 }
 
 void Model::SetValues(float d, float x, float y)
@@ -27,7 +27,21 @@ void Model::SetValues(float d, float x, float y)
 	xPos = x;
 	yPos = y;
 	rotX = rotY = rotZ = 0.0f;
-	scale = 1.0f;
+	scaleX = scaleY = scaleZ = 1.0f;
+}
+
+void Model::SetScale(float s)
+{
+	scaleX = s;
+	scaleY = s;
+	scaleZ = s;
+}
+
+void Model::SetScale(float x,float y, float z)
+{
+	scaleX = x;
+	scaleY = y;
+	scaleZ = z;
 }
 
 void Model::RenderModel()

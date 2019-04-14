@@ -19,7 +19,7 @@ class Model
 public:
 	float depth, xPos, yPos;
 	float rotX, rotY, rotZ;
-	float scale;
+	float scaleX, scaleY, scaleZ;
 	float zSize, xSize, ySize;
 
 	std::string label;
@@ -28,6 +28,8 @@ public:
 	Model();
 	Model(float d, float x, float y);
 
+	void SetScale(float);
+	void SetScale(float, float, float);
 	void SetValues(float d, float x, float y);
 	void LoadModel(const std::string& fileName);
 	void RenderModel();
