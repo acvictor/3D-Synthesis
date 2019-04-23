@@ -260,10 +260,14 @@ void Image::InverseProject()
 
         cout << segments[i].box.x1 << endl;
     }*/
-
+    /* aachen
     float in[9] = {-1.18061356e+00, -2.90375747e+00,  2.58087415e+03,
                    -2.12429347e-05, -7.17727742e-03, -4.57078599e-01,
-                    2.30509533e-05, -2.25309704e-03,  1.00000000e+00};
+                    2.30509533e-05, -2.25309704e-03,  1.00000000e+00};*/
+    // bochum
+    float in[9] = {-1.47516046e+00, -2.55711911e+00,  2.56158105e+03,
+        5.60180092e-04, -5.00376662e-03, -3.42637790e+00,
+       -3.74517625e-05, -2.42506625e-03,  1.00000000e+00};
 
     //#pragma omp parallel for
     for(size_t i = 0; i < segments.size(); i++)
@@ -272,7 +276,6 @@ void Image::InverseProject()
         {
             float u = segments[i].box.x1;
             float v = segments[i].box.y2;
-            cout << u << endl;
             if(u < 500)
             {
                 float x = in[0] * u + in[1] * v + in[2] * 1.0;

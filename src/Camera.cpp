@@ -42,12 +42,12 @@ void Camera::keyControl(bool* keys, GLfloat deltaTime)
 
 	if(keys[GLFW_KEY_UP])
 	{
-		position.y += 0.1;
+		position.y += 1;
 	}
 
 	if(keys[GLFW_KEY_DOWN])
 	{
-		position.y -= 0.1;
+		position.y -= 1;
 	}
 }
 
